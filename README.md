@@ -12,30 +12,71 @@ EduGenie is structured as a decoupled monorepo containing a **Next.js frontend**
 
 ```mermaid
 graph TD
-    %% Frontend Components
-    A[Next.js Client] -->|1. Submit Form| B(Express API Server)
-    A -->|2. Join Room & Listen| C(WebSocket Server - Socket.io)
+    classDef frontend fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:#fff;
+    classDef backend fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff;
+    classDef db fill:#f59e0b,stroke:#b45309,stroke-width:2px,color:#fff;
+    classDef ai fill:#8b5cf6,stroke:#6d28d9,stroke-width:2px,color:#fff;
+    classDef queue fill:#ef4444,stroke:#b91c1c,stroke-width:2px,color:#fff;
+    classDef logic fill:#475569,stroke:#334155,stroke-width:2px,color:#fff;
+
+    %% Client Layer
+    subgraph Client [Client Layer]
+        A[Next.js Frontend]:::frontend
+    end
+
+    %% API Layer
+    subgraph API [API Layer]
+        B(Express API Server):::backend
+        C(WebSocket Server - Socket.io):::backend
+    end
     
-    %% Backend API & Database
-    B -->|3. Create Record 'pending'| D[(MongoDB Atlas)]
-    B -->|4. Push Task 'generate'| E[BullMQ: question-generation Queue]
+    %% Message Broker & State
+    subgraph Data [Data & Queue Layer]
+        D[(MongoDB Atlas)]:::db
+        R[(Redis)]:::db
+        E[BullMQ: question-queue]:::queue
+        H[BullMQ: pdf-queue]:::queue
+    end
     
-    %% Background Workers
-    E -->|5. Process Job| F[Question Generation Worker]
-    F -->|6. Parse File & Call AI| G[Gemini 1.5 Flash API]
-    G -->|7. Return Raw JSON| Z{Zod Schema Validator}
-    Z -->|Valid: Pass data| F
-    Z -->|Invalid: Trigger Fallback| F
-    F -->|8. Save Questions & Update DB| D
-    F -->|9. Push Task 'pdf'| H[BullMQ: pdf-generation Queue]
-    F -->|10. Broadcast Progress 60%| C
+    %% Worker Layer
+    subgraph Workers [Background Processing Layer]
+        F[Question Generation Worker]:::logic
+        I[PDF Compiler Worker]:::logic
+        J[PDFKit Engine]:::logic
+        Z{Zod Schema Validator}:::logic
+    end
     
-    H -->|11. Process Job| I[PDF Compiler Worker]
-    I -->|12. Render printable PDF| J[pdfkit generator]
-    I -->|13. Save URL & Mark 'completed'| D
-    I -->|14. Broadcast Progress 100%| C
+    %% External APIs
+    subgraph External [External Services]
+        G[Google Gemini 1.5 Flash]:::ai
+    end
+
+    %% Flow
+    A -->|1. Submit Assignment Form| B
+    A -->|2. Join Socket Room & Listen| C
     
-    C -->|15. Stream State Updates| A
+    B -->|3. Create 'pending' Record| D
+    B -->|4. Enqueue Generation Job| E
+    E -.->|Powered by| R
+    H -.->|Powered by| R
+    
+    E -->|5. Process Generation Task| F
+    F -->|6. Call API with Context| G
+    G -->|7. Return Raw JSON| Z
+    
+    Z -->|Valid: Pass Data| F
+    Z -->|Invalid: Trigger Mock Fallback| F
+    
+    F -->|8. Save Structured Questions| D
+    F -->|9. Enqueue PDF Layout Task| H
+    F -->|10. Broadcast 60% Progress| C
+    
+    H -->|11. Process PDF Task| I
+    I -->|12. Compile Print Layout| J
+    J -->|13. Save PDF URL & Mark 'completed'| D
+    I -->|14. Broadcast 100% Progress| C
+    
+    C -->|15. Stream Real-Time Updates| A
 ```
 
 ---
