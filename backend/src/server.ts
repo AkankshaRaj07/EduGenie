@@ -16,7 +16,7 @@ import dashboardRoutes from './routes/dashboardRoutes';
 dotenv.config();
 
 // Environment Validation
-const requiredEnvVars = ['PORT', 'MONGODB_URI', 'GEMINI_API_KEY'];
+const requiredEnvVars = ['MONGODB_URI', 'GEMINI_API_KEY'];
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
 if (missingEnvVars.length > 0) {

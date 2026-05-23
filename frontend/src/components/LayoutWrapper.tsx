@@ -12,7 +12,8 @@ import {
   Menu,
   X,
   Plus,
-  ArrowLeft
+  ArrowLeft,
+  Sparkles
 } from 'lucide-react';
 import { useAssignmentStore } from '../store/useAssignmentStore';
 import Sidebar, { ApeAvatar } from './Sidebar';
@@ -50,23 +51,66 @@ export default function LayoutWrapper({
   const isCreateActive = pathname === '/' && viewState === 'create';
   const isLibraryActive = pathname === '/library';
   const isToolkitActive = pathname === '/toolkit';
+  const isAssignmentOutput = pathname.startsWith('/assignment/');
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-brand-warm relative">
+    <div className="flex flex-col md:flex-row min-h-screen bg-[#CCCCCC] md:bg-brand-warm relative">
       {/* 1. Left Sidebar Navigation (Desktop only, drawer on mobile) */}
       <Sidebar />
 
       {/* 2. Main Content Pane */}
-      <main className="flex-1 md:pl-64 flex flex-col min-w-0 pb-24 md:pb-8 relative">
+      <main className="flex-1 md:pl-[272px] flex flex-col min-w-0 pb-24 md:pb-8 relative">
         
         {/* Unified persistent top header (No-print) */}
-        <div className="w-full px-4 pt-4 md:px-8 md:pt-6 no-print">
-          <div className="bg-white rounded-2xl md:rounded-3xl border border-slate-200/80 px-4 md:px-6 py-2.5 flex items-center justify-between shadow-sm">
+        <div className="w-full px-4 pt-4 md:px-4 md:pt-6 no-print mb-2">
+          <div className="bg-white rounded-[24px] px-4 md:px-6 py-2.5 flex items-center justify-between shadow-sm">
             
             {/* Left Side: Dynamic back button, page title, or mobile logo */}
             <div className="flex items-center gap-3">
-              {(pathname.startsWith('/assignment') || (pathname === '/' && viewState === 'create')) ? (
-                <>
+              {/* Mobile Logo */}
+              <div className="md:hidden">
+                <div 
+                  onClick={() => {
+                    setViewState('list');
+                    router.push('/');
+                  }}
+                  className="flex items-center gap-2 cursor-pointer select-none"
+                >
+                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+                    <rect width="28" height="28" rx="7" fill="#303030"/>
+                    <path fillRule="evenodd" clipRule="evenodd" d="M15.9089 19.8507C15.9089 19.8507 16.4181 21.2101 16.8848 21.2952H10.9878C9.79981 21.2952 8.73946 20.6155 8.39977 19.3409L4.96347 9.14449C4.96347 9.14449 4.66663 7.9124 4.19995 7.70001H10.2243C11.4122 7.74255 12.2183 8.16732 12.685 9.73942L15.9089 19.8507Z" fill="white"/>
+                    <path opacity="0.2" fillRule="evenodd" clipRule="evenodd" d="M15.9089 19.8507C15.9089 19.8507 16.4181 21.2101 16.8848 21.2952H10.9878C9.79981 21.2952 8.73946 20.6155 8.39977 19.3409L4.96347 9.14449C4.96347 9.14449 4.66663 7.9124 4.19995 7.70001H10.2243C11.4122 7.74255 12.2183 8.16732 12.685 9.73942L15.9089 19.8507Z" fill="url(#paint0_linear_19_382)"/>
+                    <path fillRule="evenodd" clipRule="evenodd" d="M12.1335 19.8509C12.1335 19.8509 11.6243 21.2103 11.1576 21.2954H17.0546C18.2426 21.2954 19.3029 20.6157 19.6426 19.3411L23.0367 9.14497C23.0367 9.14497 23.3335 7.91289 23.8002 7.7005H17.8181C16.6301 7.7005 15.8666 8.12527 15.3999 9.69737L12.1335 19.8509Z" fill="white"/>
+                    <defs>
+                    <linearGradient id="paint0_linear_19_382" x1="10.5424" y1="6.54428" x2="10.5424" y2="22.4936" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="white" stopOpacity="0"/>
+                    <stop offset="0.33" stopColor="white" stopOpacity="0"/>
+                    <stop offset="0.76" stopColor="#0E1513"/>
+                    <stop offset="1" stopColor="#0E1513"/>
+                    </linearGradient>
+                    </defs>
+                  </svg>
+                  <span
+                    className="font-bricolage text-[1.2rem] font-bold leading-none text-[#1A1A1A]"
+                    style={{ letterSpacing: '-0.01em' }}
+                  >
+                    VedaAI
+                  </span>
+                </div>
+              </div>
+
+              {/* Back button and breadcrumb (Desktop and Mobile) */}
+              {isAssignmentOutput ? (
+                <button
+                  onClick={() => { setViewState('list'); router.push('/'); }}
+                  className="hidden md:flex items-center gap-2 text-xs sm:text-[14px] text-[#A0A0A0] font-medium hover:text-slate-700 transition cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4 text-[#A0A0A0]" />
+                  <Sparkles className="w-4 h-4 text-[#A0A0A0]" />
+                  Create New
+                </button>
+              ) : (
+                <div className="hidden md:flex items-center gap-3">
                   <button
                     onClick={() => {
                       if (pathname.startsWith('/assignment')) {
@@ -76,40 +120,17 @@ export default function LayoutWrapper({
                         setViewState('list');
                       }
                     }}
-                    className="w-8 h-8 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-50 transition cursor-pointer shadow-sm shrink-0"
+                    className="w-10 h-10 rounded-full bg-white text-slate-700 flex items-center justify-center hover:bg-slate-50 transition cursor-pointer shrink-0"
                   >
-                    <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
+                    <ArrowLeft className="w-[18px] h-[18px] stroke-[1.5]" />
                   </button>
-                  <span className="text-slate-400 font-extrabold text-sm tracking-tight">
-                    {getPageTitle()}
-                  </span>
-                </>
-              ) : (
-                <>
-                  {/* Logo (Visible on mobile header always, on desktop hide to prevent duplication since sidebar is open) */}
-                  <div className="md:hidden">
-                    <div 
-                      onClick={() => {
-                        setViewState('list');
-                        router.push('/');
-                      }}
-                      className="flex items-center gap-2 cursor-pointer select-none"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-[#1A1A1A] flex items-center justify-center text-white font-extrabold text-xs shadow-md border border-slate-800">
-                        <svg viewBox="0 0 100 100" className="w-4 h-4 fill-white font-black">
-                          <path d="M15,15 L45,85 L55,85 L85,15 L70,15 L50,65 L30,15 Z" />
-                        </svg>
-                      </div>
-                      <span className="font-outfit font-black text-lg tracking-tight text-brand-dark">
-                        Veda<span className="font-medium text-slate-800">AI</span>
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-2.5 text-slate-400 ml-1">
+                    <LayoutGrid className="w-5 h-5 stroke-[1.5]" />
+                    <span className="font-medium text-[15px] tracking-tight text-slate-500">
+                      {getPageTitle()}
+                    </span>
                   </div>
-                  {/* Page Title on Desktop */}
-                  <span className="hidden md:inline text-slate-800 font-black text-lg font-outfit tracking-tight">
-                    {getPageTitle()}
-                  </span>
-                </>
+                </div>
               )}
             </div>
 
@@ -118,26 +139,26 @@ export default function LayoutWrapper({
               {/* Notification icon */}
               <div 
                 onClick={() => setToastMessage("No new notifications at this time.")}
-                className="relative p-2 rounded-xl hover:bg-slate-50 cursor-pointer transition text-slate-600"
+                className="relative w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition text-slate-600 hover:bg-slate-50 shrink-0"
               >
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#E05058] border border-white"></span>
+                <Bell className="w-5 h-5 stroke-[1.5]" />
+                <span className="absolute top-[8px] right-[8px] w-[9px] h-[9px] rounded-full bg-[#E05058] border-[1.5px] border-white"></span>
               </div>
 
               {/* User Avatar Dropdown */}
               <div 
                 onClick={() => setToastMessage("Signed in as John Doe (john.doe@delhipublicschool.edu)")}
-                className="flex items-center gap-2 bg-slate-50 border border-slate-200/60 rounded-full pl-1 pr-3 py-1 shadow-sm hover:border-slate-300 transition cursor-pointer select-none"
+                className="flex items-center gap-2.5 rounded-full pl-1.5 pr-3 py-1.5 transition cursor-pointer select-none hover:bg-slate-50"
               >
                 <ApeAvatar className="w-8 h-8" />
-                <span className="text-[11px] font-black text-brand-dark hidden sm:inline whitespace-nowrap">John Doe</span>
-                <ChevronDown className="w-3 h-3 text-slate-400 stroke-[3] hidden sm:inline" />
+                <span className="text-[13px] font-bold text-slate-800 hidden sm:inline whitespace-nowrap">John Doe</span>
+                <ChevronDown className="w-4 h-4 text-slate-600 stroke-[2] hidden sm:inline" />
               </div>
 
               {/* Hamburger Menu Toggle (Mobile only) */}
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="md:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-50 focus:outline-none cursor-pointer"
+                className="md:hidden p-2 rounded-xl bg-white text-slate-600 hover:bg-slate-50 focus:outline-none cursor-pointer shadow-sm"
               >
                 {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -147,7 +168,7 @@ export default function LayoutWrapper({
         </div>
 
         {/* 3. Page Content */}
-        <div className="flex-1">
+        <div className="flex-1 px-4 md:px-4 flex flex-col">
           {children}
         </div>
 
@@ -155,21 +176,26 @@ export default function LayoutWrapper({
         {pathname === '/' && viewState === 'list' && (
           <button
             onClick={() => setViewState('create')}
-            className="md:hidden fixed bottom-24 right-6 z-40 bg-white text-[#E05058] rounded-full p-4 shadow-xl border border-slate-100 hover:scale-[1.05] active:scale-[0.95] transition cursor-pointer flex items-center justify-center w-12 h-12"
+            className="md:hidden fixed bottom-28 right-6 z-40 bg-white text-[#FF4040] rounded-full p-4 shadow-sm hover:scale-[1.05] active:scale-[0.95] transition cursor-pointer flex items-center justify-center w-[52px] h-[52px]"
           >
-            <Plus className="w-6 h-6 stroke-[3]" />
+            <Plus className="w-5 h-5 stroke-[1.5]" />
           </button>
         )}
 
         {/* 5. Mobile Bottom Navigation Bar (No-print) */}
-        <div className="md:hidden fixed bottom-5 left-4 right-4 z-40 bg-[#1A1A1A] text-slate-400 rounded-full px-6 py-2.5 flex items-center justify-between shadow-2xl border border-slate-800/40 no-print">
+        <div className="md:hidden fixed bottom-6 left-4 right-4 z-40 bg-[#1A1A1A] text-[#808080] rounded-[32px] px-6 py-4 flex items-center justify-between shadow-2xl no-print">
           
           <button 
             onClick={() => router.push('/home')}
-            className={`flex flex-col items-center gap-0.5 transition cursor-pointer ${isHomeActive ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`flex flex-col items-center gap-1.5 transition cursor-pointer ${isHomeActive ? 'text-white' : 'text-[#808080] hover:text-slate-300'}`}
           >
-            <LayoutGrid className="w-4 h-4" />
-            <span className="text-[9px] font-bold">Home</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="3" y="3" width="7" height="7" rx="2" />
+              <rect x="14" y="3" width="7" height="7" rx="2" />
+              <rect x="3" y="14" width="7" height="7" rx="2" />
+              <rect x="14" y="14" width="7" height="7" rx="2" />
+            </svg>
+            <span className="text-[10px] font-semibold">Home</span>
           </button>
 
           <button 
@@ -177,26 +203,41 @@ export default function LayoutWrapper({
               setViewState('list');
               router.push('/');
             }}
-            className={`flex flex-col items-center gap-0.5 transition cursor-pointer ${isAssignmentsActive || isCreateActive ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`flex flex-col items-center gap-1.5 transition cursor-pointer ${isAssignmentsActive || isCreateActive ? 'text-white' : 'text-[#808080] hover:text-slate-300'}`}
           >
-            <FileText className="w-4 h-4" />
-            <span className="text-[9px] font-bold">Assignments</span>
+            <svg width="24" height="24" viewBox="0 0 24 24">
+              <mask id="archive-mask">
+                <rect width="24" height="24" fill="white" />
+                <rect x="6" y="9" width="12" height="2.5" fill="black" rx="0.5" />
+                <rect x="13" y="15" width="4.5" height="2.5" fill="black" rx="0.5" />
+              </mask>
+              <rect x="4" y="3" width="16" height="18" rx="4" fill="currentColor" mask="url(#archive-mask)" />
+            </svg>
+            <span className="text-[10px] font-bold">Assignments</span>
           </button>
 
           <button 
             onClick={() => router.push('/library')}
-            className={`flex flex-col items-center gap-0.5 transition cursor-pointer ${isLibraryActive ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`flex flex-col items-center gap-1.5 transition cursor-pointer ${isLibraryActive ? 'text-white' : 'text-[#808080] hover:text-slate-300'}`}
           >
-            <FolderOpen className="w-4 h-4" />
-            <span className="text-[9px] font-bold">Library</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="12" y1="17" x2="12" y2="11" />
+              <line x1="9" y1="14" x2="15" y2="14" />
+            </svg>
+            <span className="text-[10px] font-semibold">Library</span>
           </button>
 
           <button 
             onClick={() => router.push('/toolkit')}
-            className={`flex flex-col items-center gap-0.5 transition cursor-pointer ${isToolkitActive ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`flex flex-col items-center gap-1.5 transition cursor-pointer ${isToolkitActive ? 'text-white' : 'text-[#808080] hover:text-slate-300'}`}
           >
-            <Briefcase className="w-4 h-4" />
-            <span className="text-[9px] font-bold">AI Toolkit</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M10 2 L11.5 7.5 L17 9 L11.5 10.5 L10 16 L8.5 10.5 L3 9 L8.5 7.5 Z" />
+              <path d="M18 13 L18.5 15.5 L21 16 L18.5 16.5 L18 19 L17.5 16.5 L15 16 L17.5 15.5 Z" />
+            </svg>
+            <span className="text-[10px] font-semibold">AI Toolkit</span>
           </button>
 
         </div>

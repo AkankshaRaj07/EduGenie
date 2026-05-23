@@ -1,13 +1,15 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
+
 import { useRouter, usePathname } from 'next/navigation';
 import { 
   LayoutGrid, 
-  Users, 
+  Presentation, 
   FileText, 
-  Briefcase, 
-  FolderOpen,
+  Book, 
+  PieChart,
   Settings, 
   X,
   Sparkles
@@ -48,14 +50,38 @@ export const ApeAvatar = ({ className = "w-10 h-10" }: { className?: string }) =
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { sidebarOpen, setSidebarOpen, viewState, setViewState, setToastMessage } = useAssignmentStore();
+  const { assignments, sidebarOpen, setSidebarOpen, viewState, setViewState, setToastMessage } = useAssignmentStore();
+
+  const isHomeActive = pathname === '/home';
+  const isViewingAssignment = pathname.startsWith('/assignment');
+  const isAssignmentsActive = (pathname === '/' && viewState === 'list') || isViewingAssignment;
+  const isCreateActive = pathname === '/' && viewState === 'create';
+  const isLibraryActive = pathname === '/library';
+  const isToolkitActive = pathname === '/toolkit';
+
+  const CustomGroupsIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="3" y="4" width="12" height="10" rx="2" />
+      <path d="M6 14l-2 3" />
+      <path d="M12 14l2 3" />
+      <circle cx="19" cy="14" r="2" />
+      <path d="M16 22v-2a2 2 0 0 1 2-2h3" />
+    </svg>
+  );
+
+  const CustomToolkitIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="5" y="3" width="14" height="18" rx="2" />
+      <line x1="5" y1="17" x2="19" y2="17" />
+    </svg>
+  );
 
   const navItems = [
     { name: 'Home', icon: LayoutGrid, path: '/home', active: pathname === '/home' },
-    { name: 'My Groups', icon: Users, path: '/groups', active: pathname === '/groups' },
+    { name: 'My Groups', icon: CustomGroupsIcon, path: '/groups', active: pathname === '/groups' },
     { name: 'Assignments', icon: FileText, path: '/', active: pathname === '/' || pathname.startsWith('/assignment') },
-    { name: 'AI Teacher\'s Toolkit', icon: Briefcase, path: '/toolkit', active: pathname === '/toolkit' },
-    { name: 'My Library', icon: FolderOpen, path: '/library', active: pathname === '/library' }
+    { name: 'AI Teacher\'s Toolkit', icon: CustomToolkitIcon, path: '/toolkit', active: pathname === '/toolkit' },
+    { name: 'My Library', icon: PieChart, path: '/library', active: pathname === '/library' }
   ];
 
   const handleNewAssignment = () => {
@@ -90,65 +116,112 @@ export default function Sidebar() {
 
       {/* Left Sidebar Panel (No-print) */}
       <aside
-        className={`fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-40 transform transition-transform duration-300 md:translate-x-0 flex flex-col no-print ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed top-3 bottom-3 left-3 md:top-4 md:bottom-4 md:left-4 w-64 bg-white rounded-[24px] shadow-sm z-40 transform transition-transform duration-300 md:translate-x-0 flex flex-col no-print overflow-hidden ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-[120%]'
         }`}
       >
-        {/* Header / Logo */}
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => handleNavigate('Home', '/')}>
-            {/* VedaAI Logo Mark */}
-            <div className="w-9 h-9 rounded-xl bg-[#1A1A1A] flex items-center justify-center text-white font-black text-base shadow-md border border-slate-800/80 relative overflow-hidden shrink-0">
-              <div className="absolute top-0 left-0 w-2 h-full bg-[#E05058] blur-[2px] opacity-80" />
-              <span className="relative z-10 font-outfit">V</span>
-            </div>
-            <span className="font-outfit font-black text-2xl tracking-tight text-brand-dark">
-              Veda<span className="font-medium text-slate-800">AI</span>
-            </span>
-          </div>
-          {/* Close button on mobile */}
-          <button onClick={() => setSidebarOpen(false)} className="md:hidden p-1 rounded-lg text-slate-400 hover:bg-slate-50">
-            <X className="md:hidden w-5 h-5" />
-          </button>
+        {/* Logo Header */}
+        <div className="px-6 py-6 pb-4 flex items-center gap-2.5">
+          <Image
+            src="/vedaai-logo.png"
+            alt="VedaAI Logo"
+            width={36}
+            height={36}
+            className="object-contain shrink-0"
+            style={{ width: 36, height: 'auto' }}
+            priority
+          />
+          <span
+            className="font-bricolage text-[1.35rem] font-bold leading-none select-none text-[#1A1A1A]"
+            style={{ letterSpacing: '-0.01em' }}
+          >
+            VedaAI
+          </span>
         </div>
 
-        {/* Action Button: Dark Capsule with Glow Border */}
-        <div className="px-5 py-6">
-          <button
-            onClick={handleNewAssignment}
-            className="w-full bg-[#1A1A1A] hover:bg-black text-white font-extrabold text-xs py-3 px-4 rounded-full flex items-center justify-center gap-2 transition-all brand-btn-glow cursor-pointer mb-2"
-          >
-            <Sparkles className="w-4 h-4 text-white fill-white" />
-            + Create Assignment
-          </button>
+        {/* Top Call To Action Button */}
+        <div className="px-5 pb-8 pt-6">
+          {isViewingAssignment ? (
+            <button
+              onClick={() => { router.push('/toolkit'); if (window.innerWidth < 768) setSidebarOpen(false); }}
+              className="w-full bg-[#303030] hover:bg-black text-white font-semibold text-[13px] py-2 px-4 rounded-full flex items-center justify-center gap-2 transition-all ring-2 ring-[#F06A38] cursor-pointer shadow-[0_0_8px_rgba(240,106,56,0.25)]"
+            >
+              <Sparkles className="w-4 h-4 text-white" />
+              AI Teacher&apos;s Toolkit
+            </button>
+          ) : (
+            <button
+              onClick={() => { setViewState('create'); if (window.innerWidth < 768) setSidebarOpen(false); router.push('/'); }}
+              className="w-full bg-[#303030] hover:bg-black text-white font-semibold text-[13px] py-2 px-4 rounded-full flex items-center justify-center gap-2 transition-all ring-2 ring-[#F06A38] cursor-pointer shadow-[0_0_8px_rgba(240,106,56,0.25)]"
+            >
+              <Sparkles className="w-4 h-4 text-white" />
+              Create Assignment
+            </button>
+          )}
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 px-3 py-2 space-y-1.5 overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isPlaceholder = item.path === '#';
-            return (
-              <button
-                key={item.name}
-                onClick={() => handleNavigate(item.name, item.path)}
-                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-black tracking-tight transition duration-150 relative cursor-pointer ${
-                  item.active
-                    ? 'bg-[#F1F5F9] text-brand-dark'
-                    : isPlaceholder
-                    ? 'text-slate-500 hover:bg-slate-50/50 hover:text-slate-800'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${item.active ? 'text-brand-dark' : 'text-slate-400'}`} />
-                {item.name}
-              </button>
-            );
-          })}
+        <nav className="flex-1 px-3 py-2 space-y-5">
+          <button 
+            onClick={() => { router.push('/home'); if (window.innerWidth < 768) setSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[12px] text-[13px] transition cursor-pointer ${
+              isHomeActive ? 'bg-[#F4F4F5] text-brand-dark font-semibold' : 'text-slate-500 font-medium hover:bg-slate-50 hover:text-brand-dark'
+            }`}
+          >
+            <LayoutGrid className="w-[18px] h-[18px] stroke-[1.5]" />
+            Home
+          </button>
+
+          <button 
+            onClick={() => { router.push('/groups'); if (window.innerWidth < 768) setSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[12px] text-[13px] transition cursor-pointer ${
+              pathname === '/groups' ? 'bg-[#F4F4F5] text-brand-dark font-semibold' : 'text-slate-500 font-medium hover:bg-slate-50 hover:text-brand-dark'
+            }`}
+          >
+            <Presentation className="w-[18px] h-[18px] stroke-[1.5]" />
+            My Groups
+          </button>
+
+          <button 
+            onClick={() => { setViewState('list'); router.push('/'); if (window.innerWidth < 768) setSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-[12px] text-[13px] transition cursor-pointer ${
+              isAssignmentsActive || isCreateActive ? 'bg-[#F4F4F5] text-brand-dark font-semibold' : 'text-slate-500 font-medium hover:bg-slate-50 hover:text-brand-dark'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <FileText className="w-[18px] h-[18px] stroke-[1.5]" />
+              Assignments
+            </div>
+            {assignments.length > 0 && (
+              <span className="bg-[#E87A31] text-white text-[10px] font-bold px-2 py-0.5 rounded-[8px] min-w-[22px] text-center shadow-sm">
+                {assignments.length}
+              </span>
+            )}
+          </button>
+
+          <button 
+            onClick={() => { router.push('/toolkit'); if (window.innerWidth < 768) setSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[12px] text-[13px] transition cursor-pointer ${
+              isToolkitActive ? 'bg-[#F4F4F5] text-brand-dark font-semibold' : 'text-slate-500 font-medium hover:bg-slate-50 hover:text-brand-dark'
+            }`}
+          >
+            <PieChart className="w-[18px] h-[18px] stroke-[1.5]" />
+            AI Teacher&apos;s Toolkit
+          </button>
+
+          <button 
+            onClick={() => { router.push('/library'); if (window.innerWidth < 768) setSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[12px] text-[13px] transition cursor-pointer ${
+              isLibraryActive ? 'bg-[#F4F4F5] text-brand-dark font-semibold' : 'text-slate-500 font-medium hover:bg-slate-50 hover:text-brand-dark'
+            }`}
+          >
+            <Book className="w-[18px] h-[18px] stroke-[1.5]" />
+            My Library
+          </button>
         </nav>
 
         {/* User Profile Footer */}
-        <div className="p-4 border-t border-slate-100 mt-auto flex flex-col gap-3">
+        <div className="px-4 pb-6 mt-auto flex flex-col gap-6">
           {/* Settings gear link */}
           <button
             onClick={() => {

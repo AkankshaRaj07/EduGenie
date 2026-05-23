@@ -1,5 +1,6 @@
 'use client';
 
+// Force Next.js recompile
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -14,6 +15,7 @@ import {
   Search,
   Plus,
   ArrowLeft,
+  ArrowRight,
   LayoutGrid,
   Filter,
   Mic,
@@ -22,7 +24,8 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useAssignmentStore } from '../store/useAssignmentStore';
-
+import CustomSelect from '../components/CustomSelect';
+import CustomDatePicker from '../components/CustomDatePicker';
 interface QuestionRow {
   id: string;
   type: string;
@@ -55,8 +58,51 @@ export default function Dashboard() {
 
   // Form states
   const [title, setTitle] = useState('');
-  const [dueDate, setDueDate] = useState('');
+  const [dueDate, setDueDate] = useState<string>(() => {
+    const d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
   const [additionalInstructions, setAdditionalInstructions] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  
+  // Setup Speech Recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setAdditionalInstructions((prev) => prev ? prev + ' ' + transcript : transcript);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+      };
+      
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsRecording(false);
+      };
+    }
+  }, []);
+
+  const toggleRecording = () => {
+    if (!recognitionRef.current) {
+      alert("Voice input is not supported in this browser.");
+      return;
+    }
+    if (isRecording) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
+      setIsRecording(true);
+    }
+  };
   const [file, setFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -224,7 +270,14 @@ export default function Dashboard() {
     }
 
     setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    
+    const isValid = Object.keys(errors).length === 0;
+    if (!isValid) {
+      setGeneralError(`Please fix the following: ${Object.values(errors).join(' | ')}`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    return isValid;
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -318,83 +371,56 @@ ${additionalInstructions || 'None.'}`;
   });
 
   return (
-    <div className="flex-1 py-8 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto w-full flex flex-col font-sans">
+    <div className="flex-1 py-2 w-full flex flex-col font-sans">
       
       {/* Removed duplicate header bar (now persistent in LayoutWrapper) */}
 
       {/* 2. Page Body Controller */}
       {viewState === 'list' ? (
         /* ==================== ASSIGNMENTS DASHBOARD LIST ==================== */
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col pt-2">
           
-          {/* Mobile subheader (matches Figma Screenshot 2) */}
-          <div className="md:hidden flex items-center justify-between mb-4 relative py-2">
-            <button
-              onClick={() => router.back()}
-              className="w-10 h-10 rounded-full bg-slate-200/60 text-slate-800 flex items-center justify-center hover:bg-slate-300/80 transition shadow-sm z-10 cursor-pointer"
-            >
-              <ArrowLeft className="w-5 h-5 stroke-[3]" />
-            </button>
-            <h1 className="absolute left-1/2 transform -translate-x-1/2 font-outfit font-black text-brand-dark text-base">
-              Assignments
-            </h1>
-            <div className="w-10 h-10 shrink-0"></div>
-          </div>
 
-          {/* Header Row (Desktop only) */}
-          <div className="hidden md:flex flex-row items-center justify-between gap-4 mb-8">
-            <div className="flex items-center gap-3">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-              <div>
-                <h1 className="text-3xl font-black font-outfit text-brand-dark tracking-tight leading-none">
-                  Assignments
-                </h1>
-                <p className="mt-1 text-slate-500 text-sm font-medium">
-                  Manage and create assignments for your classes.
-                </p>
+
+          {assignments.length > 0 && (
+            <>
+              {/* Header Row */}
+              <div className="flex flex-row items-start gap-3 mb-3 pl-0">
+                <span className="w-5 h-5 mt-[1px] rounded-full bg-[#A7F3D0]/70 flex items-center justify-center shrink-0">
+                  <span className="w-3 h-3 rounded-full bg-[#34D399]"></span>
+                </span>
+                <div>
+                  <h1 className="text-[20px] font-black font-outfit text-[#1A1A1A] tracking-tight leading-none">
+                    Assignments
+                  </h1>
+                  <p className="mt-1 text-[#9CA3AF] text-[13px] font-medium tracking-normal">
+                    Manage and create assignments for your classes.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <button
-              onClick={() => setViewState('create')}
-              className="bg-brand-dark-pill hover:bg-brand-dark-pill-hover text-white font-extrabold text-xs py-3 px-5 rounded-full flex items-center gap-2 transition shadow-md shadow-brand-dark-pill/10 cursor-pointer self-start sm:self-auto"
-            >
-              <Plus className="w-4 h-4 stroke-[3]" />
-              Create Assignment
-            </button>
-          </div>
-
-          {/* Filtering & Search Toolbar (Matches Figma Pill layout) */}
-          <div className="flex items-center gap-3 bg-white border border-slate-200/80 rounded-full p-2.5 mb-6 shadow-sm relative">
-            {/* Filter Toggle/Label */}
-            <div className="flex items-center gap-1.5 px-3 py-1 text-slate-500 hover:text-slate-800 cursor-pointer border-r border-slate-200 pr-4 shrink-0 relative">
-              <Filter className="w-3.5 h-3.5 text-slate-400" />
-              <span className="text-xs font-bold">Filter</span>
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-              >
-                <option value="All">All Statuses</option>
-                <option value="Completed">Completed</option>
-                <option value="Processing">Processing</option>
-                <option value="Pending">Queued</option>
-                <option value="Failed">Failed</option>
-              </select>
-            </div>
-            
-            {/* Search Pill */}
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-2 top-1.5 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search Name"
-                className="w-full bg-transparent pl-8 pr-3 py-1 text-xs font-bold text-slate-700 placeholder-slate-400 focus:outline-none"
-              />
-            </div>
-          </div>
+              {/* Filtering & Search Toolbar */}
+              <div className="flex items-center justify-between bg-white rounded-[24px] shadow-sm p-1.5 mb-6 w-full border border-slate-100">
+                <div className="flex items-center gap-2 pl-3">
+                  <Filter className="w-4 h-4 text-slate-400" />
+                  <span className="text-[13px] font-semibold text-slate-400">Filter By</span>
+                </div>
+                
+                <div className="relative w-80">
+                  <div className="relative flex items-center border border-slate-200 rounded-full px-4 py-2 bg-white">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-4" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search Assignment"
+                      className="w-full bg-transparent pl-6 pr-2 text-[13px] font-medium text-slate-700 placeholder-slate-400 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Main List Rendering */}
           {storeLoading && assignments.length === 0 ? (
@@ -403,213 +429,159 @@ ${additionalInstructions || 'None.'}`;
               <p className="text-sm text-slate-400 font-bold tracking-tight">Retrieving assessments database...</p>
             </div>
           ) : filteredAssignments.length === 0 ? (
-            
-            /* FIGMA SCREEN 1: Empty State Layout with SVG Illustration */
-            <div className="flex-1 flex flex-col items-center justify-center py-20 px-6 bg-white rounded-3xl border border-slate-200/80 shadow-sm max-w-3xl mx-auto w-full my-auto text-center">
-              
-              {/* Custom SVG Illustration */}
-              <div className="w-64 h-64 relative flex items-center justify-center mb-6">
-                <svg viewBox="0 0 200 200" className="w-full h-full">
-                  {/* Dotted circle background */}
-                  <circle cx="100" cy="100" r="75" stroke="#E2E8F0" strokeWidth="2.5" strokeDasharray="6,6" fill="none" />
-                  
-                  {/* Subtle curved background lines */}
-                  <path d="M 40,110 Q 70,70 120,80 T 165,110" fill="none" stroke="#F1F5F9" strokeWidth="3" strokeLinecap="round" />
-                  <path d="M 50,130 C 80,100 120,150 150,110" fill="none" stroke="#F1F5F9" strokeWidth="2" strokeDasharray="4,4" />
-
-                  {/* Sparkle details */}
-                  {/* Orange Sparkle */}
-                  <path d="M 45,65 Q 48,60 48,55 Q 48,60 51,65 Q 48,65 48,70 Q 48,65 45,65 Z" fill="#E05058" />
-                  <circle cx="41" cy="57" r="2.5" fill="#E05058" opacity="0.6" />
-                  {/* Muted Blue Sparkle */}
-                  <path d="M 152,145 Q 155,140 155,135 Q 155,140 158,145 Q 155,145 155,150 Q 155,145 152,145 Z" fill="#93C5FD" />
-                  <circle cx="163" cy="141" r="2" fill="#93C5FD" />
-
-                  {/* Floating Document sheet */}
-                  <g transform="translate(72, 55)">
-                    <rect x="0" y="0" width="56" height="74" rx="6" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="2.5" />
-                    {/* Dummy content lines */}
-                    <line x1="12" y1="18" x2="32" y2="18" stroke="#E2E8F0" strokeWidth="3" strokeLinecap="round" />
-                    <line x1="12" y1="28" x2="44" y2="28" stroke="#E2E8F0" strokeWidth="2.5" strokeLinecap="round" />
-                    <line x1="12" y1="38" x2="38" y2="38" stroke="#E2E8F0" strokeWidth="2.5" strokeLinecap="round" />
-                    <line x1="12" y1="48" x2="44" y2="48" stroke="#E2E8F0" strokeWidth="2.5" strokeLinecap="round" />
-                    
-                    {/* Checkmarks / Status symbols */}
-                    <circle cx="38" cy="18" r="4.5" fill="#F1F5F9" />
-                  </g>
-
-                  {/* Magnifying Glass with Red Cross Layer */}
-                  <g transform="translate(100, 95)">
-                    {/* Shadow overlay */}
-                    <circle cx="22" cy="22" r="25" fill="#0f172a" fillOpacity="0.05" />
-                    
-                    {/* Glass Circle */}
-                    <circle cx="20" cy="20" r="22" fill="#FFFFFF" stroke="#1A1A1A" strokeWidth="3.5" />
-                    <circle cx="20" cy="20" r="18" fill="#F8FAFC" />
-                    
-                    {/* Metal Handle */}
-                    <line x1="36" y1="36" x2="52" y2="52" stroke="#1A1A1A" strokeWidth="4.5" strokeLinecap="round" />
-                    <line x1="36" y1="36" x2="52" y2="52" stroke="#64748B" strokeWidth="2" strokeLinecap="round" />
-                    
-                    {/* Red Cross (X) icon inside glass */}
-                    <line x1="13" y1="13" x2="27" y2="27" stroke="#E05058" strokeWidth="3.5" strokeLinecap="round" />
-                    <line x1="27" y1="13" x2="13" y2="27" stroke="#E05058" strokeWidth="3.5" strokeLinecap="round" />
-                  </g>
-                </svg>
+            <div className="flex-1 flex flex-col items-center justify-center px-6 pb-20 w-full text-center">
+              <div className="relative mb-0">
+                <img 
+                  src="/empty-state.svg" 
+                  alt="No assignments illustration" 
+                  className="w-[280px] h-[280px] mx-auto scale-105" 
+                />
               </div>
 
-              <h2 className="text-xl font-black font-outfit text-brand-dark">
+              <h2 className="text-[20px] font-bold font-outfit text-[#1A1A1A]">
                 No assignments yet
               </h2>
-              <p className="text-slate-500 text-sm max-w-md mt-2.5 leading-relaxed font-semibold">
-                Create your first assignment to start collecting and grading student submissions. You can set up rubrics, define marking criteria, and let AI assist with grading.
+              <p className="text-[#7A7A7A] text-[13px] max-w-[340px] mx-auto mt-2.5 font-medium leading-[1.4] tracking-[-0.01em]">
+                Create your first assignment to start collecting and
+                grading student submissions. You can set up rubrics,
+                define marking criteria, and let AI assist with grading.
               </p>
-              
+
               <button
                 onClick={() => setViewState('create')}
-                className="mt-6 bg-[#1A1A1A] hover:bg-black text-white font-extrabold text-xs py-3.5 px-6 rounded-full shadow-md transition-all cursor-pointer flex items-center gap-2"
+                className="mt-6 bg-[#1A1A1A] hover:bg-black text-white font-semibold text-[13px] py-3.5 px-6 rounded-full flex items-center justify-center gap-1.5 transition cursor-pointer"
               >
-                <Sparkles className="w-4 h-4 text-[#E05058] fill-[#E05058]" />
-                Create Your First Assignment
+                <Plus className="w-[18px] h-[18px] stroke-[1.5]" /> Create Your First Assignment
               </button>
             </div>
           ) : (
-            
-            /* FIGMA SCREEN 2: Assessments Grid List styling */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 relative">
               {filteredAssignments.map((asg) => (
                 <div
                   key={asg._id}
                   onClick={() => router.push(`/assignment/${asg._id}`)}
-                  className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all relative flex flex-col justify-between min-h-[220px] cursor-pointer group"
+                  className="bg-white rounded-[28px] p-6 shadow-sm border border-slate-100 flex flex-col justify-between min-h-[220px] cursor-pointer"
                 >
                   {/* Card Header & Title */}
-                  <div>
-                    <div className="flex justify-between items-start gap-4 mb-3">
-                      <h3 className="text-base font-black font-outfit text-brand-dark leading-snug truncate group-hover:text-[#E05058] transition pr-6">
-                        {asg.title}
-                      </h3>
-                      
-                      {/* Ellipsis Actions Menu Button */}
-                      <div className="relative" ref={asg._id === activeDropdownId ? dropdownRef : null}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveDropdownId(activeDropdownId === asg._id ? null : asg._id);
-                          }}
-                          className="p-1 rounded-full text-slate-400 hover:text-brand-dark hover:bg-slate-50 transition relative z-10"
-                        >
-                          <MoreVertical className="w-5 h-5" />
-                        </button>
+                  <div className="flex justify-between items-start gap-4">
+                    <h3 className="text-[22px] font-bold font-outfit text-[#1A1A1A] leading-snug">
+                      {asg.title}
+                    </h3>
+                    
+                    {/* Ellipsis Actions Menu Button */}
+                    <div className="relative" ref={asg._id === activeDropdownId ? dropdownRef : null}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveDropdownId(activeDropdownId === asg._id ? null : asg._id);
+                        }}
+                        className="text-slate-400 hover:text-slate-600 transition"
+                      >
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
 
-                        {/* Dropdown Options */}
-                        {activeDropdownId === asg._id && (
-                          <div className="absolute right-0 mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 w-44 z-30 font-extrabold text-xs text-slate-700">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveDropdownId(null);
-                                router.push(`/assignment/${asg._id}`);
-                              }}
-                              className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 transition text-left"
-                            >
-                              <span>View Assignment</span>
-                              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-                            </button>
-                            <button
-                              onClick={(e) => handleDelete(e, asg._id)}
-                              className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-rose-50 text-[#E05058] border-t border-slate-100 transition text-left"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 text-[#E05058]" />
-                              <span>Delete</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Stats pills */}
-                    <div className="flex flex-wrap items-center gap-3 mb-5">
-                      <span className="text-[10px] font-black text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200/80">
-                        {asg.numQuestions} Questions
-                      </span>
-                      <span className="text-[10px] font-black text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200/80">
-                        {asg.totalMarks} Marks
-                      </span>
-                      {asg.fileName && (
-                        <span className="text-[10px] font-black text-brand-primary bg-rose-50/50 px-2 py-0.5 rounded border border-[#FECDD3] truncate max-w-[130px]">
-                          {asg.fileName}
-                        </span>
+                      {/* Dropdown Options */}
+                      {activeDropdownId === asg._id && (
+                        <div className="absolute right-0 mt-2 bg-white rounded-2xl shadow-lg border border-slate-100 p-1 w-40 z-30">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDropdownId(null);
+                              router.push(`/assignment/${asg._id}`);
+                            }}
+                            className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-50 transition text-left rounded-xl"
+                          >
+                            <span className="text-[13px] font-semibold text-[#1A1A1A]">View Assignment</span>
+                          </button>
+                          <button
+                            onClick={(e) => handleDelete(e, asg._id)}
+                            className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-50 transition text-left rounded-xl"
+                          >
+                            <span className="text-[13px] font-semibold text-[#E05058]">Delete</span>
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
 
                   {/* Card bottom details */}
-                  <div className="pt-4 border-t border-slate-100 flex flex-col gap-2 mt-auto">
-                    <div className="flex justify-between items-center text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                      <span>Assigned on: {formatDate(asg.createdAt)}</span>
-                      <span>Due: {formatDate(asg.dueDate)}</span>
+                  <div className="mt-8 flex justify-between items-center text-[13px]">
+                    <div className="text-slate-500">
+                      <span className="font-bold text-[#1A1A1A]">Assigned on :</span> {formatDate(asg.createdAt)}
                     </div>
-
-                    {/* Status indicator bar */}
-                    <div className="flex items-center justify-between mt-1">
-                      {asg.status === 'completed' && (
-                        <span className="px-2.5 py-0.5 text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full flex items-center gap-1 uppercase tracking-wider">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Completed
-                        </span>
-                      )}
-                      {asg.status === 'processing' && (
-                        <span className="px-2.5 py-0.5 text-[9px] font-black bg-amber-50 text-amber-700 border border-amber-100 rounded-full flex items-center gap-1 uppercase tracking-wider">
-                          <Loader2 className="w-3 h-3 text-amber-600 animate-spin" /> Processing
-                        </span>
-                      )}
-                      {asg.status === 'pending' && (
-                        <span className="px-2.5 py-0.5 text-[9px] font-black bg-slate-100 text-slate-600 border border-slate-200 rounded-full uppercase tracking-wider">
-                          Queued
-                        </span>
-                      )}
-                      {asg.status === 'failed' && (
-                        <span className="px-2.5 py-0.5 text-[9px] font-black bg-rose-50 text-rose-700 border border-rose-100 rounded-full flex items-center gap-1 uppercase tracking-wider">
-                          <AlertCircle className="w-3 h-3 text-brand-primary" /> Failed
-                        </span>
-                      )}
+                    <div className="text-slate-500">
+                      <span className="font-bold text-[#1A1A1A]">Due :</span> {formatDate(asg.dueDate)}
                     </div>
                   </div>
                 </div>
               ))}
+              
+              {/* True CSS Bottom Blur Fade Overlay */}
+              <div 
+                className="fixed bottom-0 left-0 md:left-[272px] right-0 h-40 pointer-events-none z-30" 
+                style={{ 
+                  backdropFilter: 'blur(8px)', 
+                  WebkitBackdropFilter: 'blur(8px)',
+                  maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+                  WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)' 
+                }} 
+              />
+
+              {/* Floating Action Button (Desktop Only) */}
+              <div className="hidden md:flex fixed bottom-8 left-[50%] md:left-[calc(50%+144px)] transform -translate-x-1/2 z-40 flex-col items-center">
+                <button
+                  onClick={() => setViewState('create')}
+                  className="bg-[#1A1A1A] hover:bg-black text-white font-medium text-[14px] py-2.5 px-6 rounded-full flex items-center gap-2.5 shadow-2xl transition-transform hover:scale-105 active:scale-95 cursor-pointer border border-[#333]"
+                >
+                  <Plus className="w-4 h-4 stroke-[2]" />
+                  Create Assignment
+                </button>
+              </div>
             </div>
           )}
 
-          {/* Floating bottom action button */}
-          <button
-            onClick={() => setViewState('create')}
-            className="fixed bottom-6 right-6 md:right-8 bg-[#1A1A1A] hover:bg-black text-white font-extrabold text-xs py-3 px-5 rounded-full flex items-center gap-2 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition cursor-pointer z-10 no-print"
-          >
-            <Sparkles className="w-4 h-4 text-[#E05058] fill-[#E05058]" />
-            Create Assignment
-          </button>
         </div>
       ) : (
         
         /* ==================== CREATE ASSIGNMENT FORM WIZARD ==================== */
-        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
+        <div className="flex-1 flex flex-col w-full pt-2">
           
-          {/* Page Header (Matches Figma Screen 3 / first screenshot) */}
-          <div className="flex items-center gap-2.5 mb-4">
-            <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 border-4 border-emerald-100 flex-shrink-0 animate-pulse"></span>
+          {/* Mobile Back Header */}
+          <div className="md:hidden w-full flex flex-col mb-4 mt-2 px-2">
+            <div className="flex items-center justify-center relative w-full mb-4">
+              <button 
+                onClick={() => setViewState('list')}
+                className="absolute left-0 w-10 h-10 rounded-full bg-[#E5E7EB] flex items-center justify-center cursor-pointer"
+              >
+                <ArrowLeft className="w-5 h-5 text-[#1A1A1A]" />
+              </button>
+              <span className="font-bold text-[15px] font-outfit text-[#1A1A1A]">Create Assignment</span>
+            </div>
+            <div className="w-full flex gap-1.5">
+              <div className="w-1/2 bg-[#4A4A4A] h-[3px] rounded-full"></div>
+              <div className="w-1/2 bg-[#E5E5E5] h-[3px] rounded-full"></div>
+            </div>
+          </div>
+
+          {/* Page Header (Desktop) */}
+          <div className="hidden md:flex flex-row items-start gap-3 mb-3 pl-0">
+            <span className="w-5 h-5 mt-[1px] rounded-full bg-[#A7F3D0]/70 flex items-center justify-center shrink-0">
+              <span className="w-3 h-3 rounded-full bg-[#34D399]"></span>
+            </span>
             <div>
-              <h1 className="text-xl font-black font-outfit text-brand-dark tracking-tight leading-none">
+              <h1 className="text-[20px] font-black font-outfit text-brand-dark tracking-tight leading-none">
                 Create Assignment
               </h1>
-              <p className="mt-1 text-slate-500 text-[10px] sm:text-xs font-semibold">
+              <p className="mt-1 text-slate-400 text-[13px] font-medium tracking-normal">
                 Set up a new assignment for your students
               </p>
             </div>
           </div>
 
-          {/* Progress Indicator line */}
-          <div className="w-full max-w-md mx-auto bg-slate-200 h-1.5 rounded-full overflow-hidden mb-10">
-            <div className="bg-[#4A4A4A] h-full w-[45%] rounded-full"></div>
+          {/* Progress Indicator line (Desktop) */}
+          <div className="hidden md:flex w-full max-w-4xl mx-auto gap-3 mb-6 items-center">
+            <div className="h-1.5 w-[55%] bg-[#4A4A4A] rounded-full"></div>
+            <div className="h-1.5 flex-1 bg-slate-200 rounded-full"></div>
           </div>
 
           {/* Error Message Box */}
@@ -624,49 +596,46 @@ ${additionalInstructions || 'None.'}`;
           )}
 
           {/* Assignment Details Card container */}
-          <form onSubmit={onSubmit} className="bg-white border border-slate-200/80 shadow-sm rounded-3xl p-6 sm:p-8 space-y-6">
+          <form onSubmit={onSubmit} className="bg-[#EAEAEA] md:bg-[#F2F2F2] border-none shadow-none md:shadow-sm rounded-[32px] md:rounded-[36px] p-4 sm:p-6 md:p-8 space-y-6 max-w-4xl w-full mx-auto pb-[120px] md:pb-10">
             
-            {/* Header info */}
-            <div>
-              <h2 className="text-xl font-black font-outfit text-brand-dark">Assignment Details</h2>
-              <p className="text-xs text-slate-500 font-semibold mt-1">Basic information about your assignment</p>
-            </div>
+            {/* Header info & Upload Card */}
+            <div className="bg-transparent md:bg-transparent rounded-none p-1 shadow-none">
+              <div className="mb-4 px-1">
+                <h2 className="text-[18px] md:text-[20px] font-bold font-outfit text-[#1A1A1A] tracking-tight">Assignment Details</h2>
+                <p className="text-[12px] text-[#7A7A7A] font-medium mt-0.5">Basic information about your assignment</p>
+              </div>
 
-            {/* Title block */}
-            <div>
-              <label className="block text-xs font-black text-brand-dark uppercase tracking-wider mb-2">
-                Assignment Title
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Quiz on Electricity"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className={`w-full px-4 py-3 rounded-2xl border ${formErrors.title ? 'border-brand-primary focus:ring-brand-primary/10' : 'border-slate-200 focus:ring-brand-primary/10'} focus:border-brand-primary focus:outline-none focus:ring-4 transition text-slate-800 text-sm font-semibold`}
-              />
-              {formErrors.title && (
-                <p className="mt-1 text-xs text-brand-primary font-bold flex items-center gap-1">
-                  <AlertCircle className="w-3.5 h-3.5" /> {formErrors.title}
-                </p>
-              )}
-            </div>
+              <div className="mb-6 px-1">
+                <label className="block text-[13px] font-bold text-[#1A1A1A] mb-2 tracking-tight">
+                  Assignment Name
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Physics Midterm Worksheet"
+                  className={`w-full px-5 py-3.5 rounded-full bg-white md:bg-transparent border ${formErrors.title ? 'border-brand-primary' : 'border-[#D4D4D4]'} text-[13px] text-[#1A1A1A] font-medium placeholder-[#A3A3A3] focus:outline-none focus:border-[#1A1A1A] transition`}
+                />
+                {formErrors.title && (
+                  <p className="mt-1.5 text-xs text-brand-primary font-bold flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" /> {formErrors.title}
+                  </p>
+                )}
+              </div>
 
-            {/* Grounding textbook upload box */}
-            <div>
-              <label className="block text-xs font-black text-brand-dark uppercase tracking-wider mb-2">
-                Grounding Document (Syllabus/Textbook)
-              </label>
+              {/* Grounding textbook upload box */}
+              <div className="mt-2">
               <div
                 onDragEnter={handleDrag}
                 onDragOver={handleDrag}
                 onDragLeave={handleDrag}
                 onDrop={handleDrop}
-                className={`relative border-2 border-dashed rounded-2xl p-6 transition text-center flex flex-col items-center justify-center ${
+                className={`relative border-[2px] border-dashed rounded-[24px] p-8 transition text-center flex flex-col items-center justify-center ${
                   dragActive 
                     ? 'border-[#E05058] bg-[#E05058]/5' 
                     : file 
                     ? 'border-emerald-300 bg-emerald-50/20' 
-                    : 'border-slate-200 hover:border-slate-300'
+                    : 'border-[#D4D4D4] bg-[#FAFAFA] hover:border-[#A3A3A3]'
                 }`}
               >
                 <input
@@ -682,45 +651,44 @@ ${additionalInstructions || 'None.'}`;
                     <div className="p-2.5 bg-emerald-100 text-emerald-700 rounded-full mb-2">
                       <FileText className="w-5 h-5" />
                     </div>
-                    <p className="text-xs font-bold text-slate-800 max-w-sm truncate">{file.name}</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    <p className="text-[15px] font-bold text-slate-800 max-w-sm truncate">{file.name}</p>
+                    <p className="text-[12px] text-slate-400 mt-1.5 mb-6">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
                     <button
                       type="button"
                       onClick={() => setFile(null)}
-                      className="mt-2.5 text-[10px] font-black text-[#E05058] hover:text-[#c83c44] transition uppercase tracking-wider cursor-pointer"
+                      className="px-6 py-2 bg-rose-50 border border-rose-100 text-[#E05058] font-bold text-[13px] rounded-full hover:bg-rose-100 transition inline-block cursor-pointer"
                     >
-                      Remove file
+                      Remove File
                     </button>
                   </div>
                 ) : (
-                  <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center w-full py-2">
-                    <div className="p-2.5 bg-slate-50 border border-slate-100 text-slate-400 rounded-full mb-2.5">
-                      <UploadCloud className="w-6 h-6 text-slate-400" />
+                  <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center w-full py-1">
+                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center mb-3 shadow-sm border border-slate-100">
+                      <UploadCloud className="w-5 h-5 text-[#1A1A1A]" />
                     </div>
-                    <p className="text-xs font-bold text-slate-700">Choose a file or drag & drop it here</p>
-                    <p className="text-[10px] text-slate-400 mt-1">JPEG, PNG, PDF, TXT up to 10MB</p>
-                    <span className="mt-3.5 px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-extrabold text-[11px] rounded-full uppercase tracking-wider transition inline-block">
+                    <p className="text-[13px] font-medium text-[#1A1A1A]">Choose a file or drag & drop it here</p>
+                    <p className="text-[11px] text-[#A3A3A3] font-medium mt-1.5 mb-5 tracking-wide uppercase">JPEG, PNG, upto 10MB</p>
+                    <span className="px-5 py-2 bg-white shadow-sm border border-slate-100 text-[#1A1A1A] font-bold text-[12px] rounded-full transition inline-block">
                       Browse Files
                     </span>
                   </label>
                 )}
               </div>
+              <p className="text-center text-[12px] md:text-[13px] text-[#7A7A7A] font-medium mt-4">Upload images of your preferred document/<br className="md:hidden"/>image</p>
+            </div>
             </div>
 
             {/* Due Date row */}
-            <div>
-              <label className="block text-xs font-black text-brand-dark uppercase tracking-wider mb-2">
+            <div className="px-2 md:px-0">
+              <label className="block text-[13px] font-bold text-[#1A1A1A] mb-2 tracking-tight">
                 Due Date
               </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className={`w-full pl-4 pr-11 py-3 rounded-2xl border ${formErrors.dueDate ? 'border-brand-primary focus:ring-brand-primary/10' : 'border-slate-200 focus:ring-brand-primary/10'} focus:border-brand-primary focus:outline-none focus:ring-4 transition text-slate-800 text-sm font-semibold`}
-                />
-                <Calendar className="w-5 h-5 text-slate-400 absolute right-4 top-3.5 pointer-events-none" />
-              </div>
+              <CustomDatePicker
+                value={dueDate}
+                onChange={setDueDate}
+                error={!!formErrors.dueDate}
+                buttonClassName="w-full px-5 py-3.5 rounded-full bg-transparent border border-[#D4D4D4] text-[13px] text-[#1A1A1A] font-medium placeholder-[#A3A3A3]"
+              />
               {formErrors.dueDate && (
                 <p className="mt-1 text-xs text-brand-primary font-bold flex items-center gap-1">
                   <AlertCircle className="w-3.5 h-3.5" /> {formErrors.dueDate}
@@ -728,254 +696,243 @@ ${additionalInstructions || 'None.'}`;
               )}
             </div>
 
-            {/* Dynamic Question Type Configuration Table */}
-            <div>
-              <div className="flex justify-between items-center mb-3">
-                <label className="text-xs font-black text-brand-dark uppercase tracking-wider">
-                  Question Formats & Balancing
-                </label>
-                {formErrors.rows && (
-                  <p className="text-xs text-brand-primary font-bold flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" /> {formErrors.rows}
-                  </p>
-                )}
+            {/* Dynamic Question Type Configuration */}
+            <div className="px-2 md:px-0">
+              <label className="block md:hidden text-[13px] font-bold text-[#1A1A1A] mb-3 tracking-tight">
+                Question Type
+              </label>
+              {/* Table Headers (Desktop) */}
+              <div className="hidden md:flex items-center text-[13px] font-bold text-[#1A1A1A] mb-3">
+                <div className="flex-[2]">Question Type</div>
+                <div className="w-36 text-center">No. of Questions</div>
+                <div className="w-28 text-center">Marks</div>
               </div>
 
-              {/* Rows List */}
-              <div className="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100 shadow-sm">
-                
+              {formErrors.rows && (
+                <p className="text-xs text-brand-primary font-bold flex items-center gap-1 mb-3">
+                  <AlertCircle className="w-3.5 h-3.5" /> {formErrors.rows}
+                </p>
+              )}
+
+              {/* Desktop Rows List */}
+              <div className="hidden md:block space-y-4">
                 {questionRows.map((row) => (
-                  <div key={row.id}>
-                    {/* Desktop View (Table Row Style) */}
-                    <div className="hidden md:flex p-4 bg-slate-50/50 hover:bg-slate-50 flex-row items-center justify-between gap-4 transition border-b border-slate-100 last:border-0">
-                      {/* Left: Drag Handle and Select Dropdown */}
-                      <div className="flex items-center gap-2 flex-1">
-                        <div className="text-slate-300 cursor-grab p-1">
-                          <GripVertical className="w-4 h-4" />
-                        </div>
-                        <select
-                          value={row.type}
-                          onChange={(e) => handleUpdateRow(row.id, 'type', e.target.value)}
-                          className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-brand-primary flex-1 max-w-[280px]"
-                        >
-                          {QUESTION_TYPES_OPTIONS.map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
-                          ))}
-                        </select>
-                      </div>
+                  <div key={row.id} className="flex items-center gap-3">
+                    {/* Select Dropdown */}
+                    <div className="flex-[2]">
+                      <CustomSelect
+                        value={row.type}
+                        onChange={(val) => handleUpdateRow(row.id, 'type', val)}
+                        options={QUESTION_TYPES_OPTIONS}
+                        buttonClassName="bg-white border border-slate-200 rounded-full px-5 py-3 text-[13px] font-medium text-[#1A1A1A] shadow-sm w-full"
+                      />
+                    </div>
+                    
+                    {/* Delete Icon */}
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteRow(row.id)}
+                      className="p-1.5 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
 
-                      {/* Right: Counter controls and Delete button */}
-                      <div className="flex items-center gap-4 text-xs font-extrabold text-slate-500">
-                        {/* Questions count capsule */}
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-slate-400 uppercase tracking-wider leading-none">No. of Questions</span>
-                          <div className="flex items-center bg-white rounded-full border border-slate-200 p-0.5 shadow-sm">
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateRow(row.id, 'count', Math.max(1, row.count - 1))}
-                              className="w-7 h-7 flex items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 transition font-black cursor-pointer text-sm"
-                            >
-                              -
-                            </button>
-                            <span className="w-10 text-center text-xs font-black text-brand-dark">{row.count}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateRow(row.id, 'count', row.count + 1)}
-                              className="w-7 h-7 flex items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 transition font-black cursor-pointer text-sm"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Marks capsule */}
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-slate-400 uppercase tracking-wider leading-none">Marks</span>
-                          <div className="flex items-center bg-white rounded-full border border-slate-200 p-0.5 shadow-sm">
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateRow(row.id, 'marks', Math.max(1, row.marks - 1))}
-                              className="w-7 h-7 flex items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 transition font-black cursor-pointer text-sm"
-                            >
-                              -
-                            </button>
-                            <span className="w-10 text-center text-xs font-black text-brand-dark">{row.marks}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateRow(row.id, 'marks', row.marks + 1)}
-                              className="w-7 h-7 flex items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 transition font-black cursor-pointer text-sm"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Subtotal */}
-                        <div className="text-right min-w-[70px] pr-2">
-                          <span className="text-[10px] text-slate-400 block mb-0.5 uppercase tracking-wider leading-none">Subtotal</span>
-                          <span className="text-xs font-black text-brand-primary">{row.count * row.marks} M</span>
-                        </div>
-
-                        {/* Delete button */}
+                    {/* No. of Questions */}
+                    <div className="w-36 flex justify-center">
+                      <div className="flex items-center bg-white border border-slate-200 rounded-full px-4 py-2 shadow-sm w-fit gap-3">
                         <button
                           type="button"
-                          onClick={() => handleDeleteRow(row.id)}
-                          className="p-2 rounded-xl text-slate-400 hover:text-brand-primary hover:bg-rose-50 transition cursor-pointer"
+                          onClick={() => handleUpdateRow(row.id, 'count', Math.max(1, row.count - 1))}
+                          className="text-[#A3A3A3] hover:text-slate-600 transition font-black text-[13px]"
                         >
-                          <X className="w-4 h-4" />
+                          -
+                        </button>
+                        <span className="text-[13px] font-bold text-[#1A1A1A] min-w-[12px] text-center">{row.count}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateRow(row.id, 'count', row.count + 1)}
+                          className="text-[#A3A3A3] hover:text-slate-600 transition font-black text-[13px]"
+                        >
+                          +
                         </button>
                       </div>
                     </div>
 
-                    {/* Mobile View (Figma Screen 3 Card Style) */}
-                    <div className="md:hidden p-4 bg-slate-50/50 hover:bg-slate-50 flex flex-col gap-3.5 transition border-b border-slate-100 last:border-0">
-                      {/* Top Row: Dropdown select and delete button */}
-                      <div className="flex items-center justify-between gap-3">
-                        <select
-                          value={row.type}
-                          onChange={(e) => handleUpdateRow(row.id, 'type', e.target.value)}
-                          className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold text-slate-700 focus:outline-none focus:border-brand-primary flex-1 shadow-sm"
-                        >
-                          {QUESTION_TYPES_OPTIONS.map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
-                          ))}
-                        </select>
-
+                    {/* Marks */}
+                    <div className="w-28 flex justify-center">
+                      <div className="flex items-center bg-white border border-slate-200 rounded-full px-4 py-2 shadow-sm w-fit gap-3">
                         <button
                           type="button"
-                          onClick={() => handleDeleteRow(row.id)}
-                          className="p-2 rounded-full text-slate-400 hover:text-brand-primary bg-white border border-slate-200 shadow-sm transition cursor-pointer"
+                          onClick={() => handleUpdateRow(row.id, 'marks', Math.max(1, row.marks - 1))}
+                          className="text-[#A3A3A3] hover:text-slate-600 transition font-black text-[13px]"
                         >
-                          <X className="w-4 h-4" />
+                          -
                         </button>
-                      </div>
-
-                      {/* Bottom Row: Side-by-side count capsules */}
-                      <div className="grid grid-cols-2 gap-3">
-                        {/* No. of Questions Capsule */}
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-2.5 flex flex-col items-center justify-center shadow-sm">
-                          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1 text-center">No. of Questions</span>
-                          <div className="flex items-center gap-3">
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateRow(row.id, 'count', Math.max(1, row.count - 1))}
-                              className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 transition font-black text-sm"
-                            >
-                              -
-                            </button>
-                            <span className="text-xs font-black text-brand-dark min-w-[20px] text-center">{row.count}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateRow(row.id, 'count', row.count + 1)}
-                              className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 transition font-black text-sm"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Marks Capsule */}
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-2.5 flex flex-col items-center justify-center shadow-sm">
-                          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1 text-center">Marks</span>
-                          <div className="flex items-center gap-3">
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateRow(row.id, 'marks', Math.max(1, row.marks - 1))}
-                              className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 transition font-black text-sm"
-                            >
-                              -
-                            </button>
-                            <span className="text-xs font-black text-brand-dark min-w-[20px] text-center">{row.marks}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateRow(row.id, 'marks', row.marks + 1)}
-                              className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 transition font-black text-sm"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
+                        <span className="text-[13px] font-bold text-[#1A1A1A] min-w-[12px] text-center">{row.marks}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateRow(row.id, 'marks', row.marks + 1)}
+                          className="text-[#A3A3A3] hover:text-slate-600 transition font-black text-[13px]"
+                        >
+                          +
+                        </button>
                       </div>
                     </div>
                   </div>
                 ))}
+              </div>
 
+              {/* Mobile Rows List */}
+              <div className="md:hidden space-y-4">
+                {questionRows.map((row) => (
+                  <div key={row.id} className="bg-white rounded-[24px] p-4 shadow-sm relative">
+                    {/* Top Row: Dropdown and X */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex-1 pr-2">
+                        <CustomSelect
+                          value={row.type}
+                          onChange={(val) => handleUpdateRow(row.id, 'type', val)}
+                          options={QUESTION_TYPES_OPTIONS}
+                          buttonClassName="bg-transparent text-[13px] font-medium text-[#1A1A1A] w-full border-none shadow-none p-0 flex justify-between items-center"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteRow(row.id)}
+                        className="p-1 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Bottom Row: Counters container */}
+                    <div className="bg-[#F4F5F7] rounded-[16px] p-3 flex justify-between items-center">
+                      
+                      <div className="flex flex-col items-center flex-1">
+                        <span className="text-[12px] text-[#1A1A1A] font-medium mb-2">No. of Questions</span>
+                        <div className="flex items-center bg-white rounded-full px-4 py-1.5 shadow-sm gap-4">
+                          <button type="button" onClick={() => handleUpdateRow(row.id, 'count', Math.max(1, row.count - 1))} className="text-slate-400 hover:text-[#1A1A1A] font-medium text-[16px]">-</button>
+                          <span className="text-[13px] font-bold text-[#1A1A1A] min-w-[16px] text-center">{row.count}</span>
+                          <button type="button" onClick={() => handleUpdateRow(row.id, 'count', row.count + 1)} className="text-slate-400 hover:text-[#1A1A1A] font-medium text-[16px]">+</button>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-center flex-1">
+                        <span className="text-[12px] text-[#1A1A1A] font-medium mb-2">Marks</span>
+                        <div className="flex items-center bg-white rounded-full px-4 py-1.5 shadow-sm gap-4">
+                          <button type="button" onClick={() => handleUpdateRow(row.id, 'marks', Math.max(1, row.marks - 1))} className="text-slate-400 hover:text-[#1A1A1A] font-medium text-[16px]">-</button>
+                          <span className="text-[13px] font-bold text-[#1A1A1A] min-w-[16px] text-center">{row.marks}</span>
+                          <button type="button" onClick={() => handleUpdateRow(row.id, 'marks', row.marks + 1)} className="text-slate-400 hover:text-[#1A1A1A] font-medium text-[16px]">+</button>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {/* Add Row Button & Running Totals banner */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4">
+              <div className="flex flex-row items-center justify-between mt-6">
+                
+                {/* Unified Add Button */}
                 <button
                   type="button"
                   onClick={handleAddRow}
-                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-extrabold text-xs rounded-full flex items-center gap-1.5 transition cursor-pointer self-start"
+                  className="flex items-center gap-3 px-1 cursor-pointer w-fit"
                 >
-                  <Plus className="w-3.5 h-3.5" /> Add Question Type
+                  <div className="w-8 h-8 rounded-full bg-[#262626] flex items-center justify-center">
+                    <Plus className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="font-bold text-[13px] text-[#1A1A1A]">Add Question Type</span>
                 </button>
 
-                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl px-5 py-3 flex items-center gap-4 font-bold text-xs shadow-sm">
-                  <div className="text-slate-400 uppercase tracking-wider text-[10px] mr-2">Total Balance:</div>
-                  <span className="text-slate-700">{totalQuestions} Questions</span>
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                  <span className="text-brand-primary font-black text-sm">{totalMarks} Total Marks</span>
+                {/* Unified Totals */}
+                <div className="flex flex-col items-end gap-1.5 px-2">
+                  <p className="text-[13px] text-[#1A1A1A] font-medium tracking-tight">Total Questions : <span className="font-bold ml-1">{totalQuestions}</span></p>
+                  <p className="text-[13px] text-[#1A1A1A] font-medium tracking-tight">Total Marks : <span className="font-bold ml-1">{totalMarks}</span></p>
                 </div>
+
               </div>
             </div>
 
             {/* Additional Syllabus Guidelines */}
-            <div className="relative">
-              <label className="block text-xs font-black text-brand-dark uppercase tracking-wider mb-2">
-                Syllabus Guidelines / Custom Instructions
+            <div className="px-2 md:px-0">
+              <label className="block text-[13px] font-bold text-[#1A1A1A] tracking-tight mb-2">
+                Additional Information (For better output)
               </label>
               <div className="relative">
                 <textarea
                   rows={4}
                   value={additionalInstructions}
                   onChange={(e) => setAdditionalInstructions(e.target.value)}
-                  placeholder="e.g. Generate a question paper for 3 hour exam duration. Focus on electrostatics principles."
-                  className="w-full pl-4 pr-12 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#E05058]/10 focus:border-[#E05058] focus:outline-none transition text-slate-800 text-sm font-semibold"
+                  placeholder="e.g Generate a question paper for 3 hour exam duration..."
+                  className="w-full pl-5 pr-14 py-4 rounded-[24px] border-[2px] border-dashed border-[#D4D4D4] bg-transparent focus:ring-4 focus:ring-[#E05058]/10 focus:border-[#E05058] focus:outline-none transition text-[#1A1A1A] text-[13px] font-medium placeholder-[#A3A3A3]"
                 />
                 {/* Voice icon at bottom right of guidelines */}
                 <button
                   type="button"
-                  onClick={() => setToastMessage("Voice guidelines input is coming soon!")}
+                  onClick={toggleRecording}
                   title="Voice input"
-                  className="absolute right-4 bottom-4 p-2 rounded-xl text-slate-400 hover:text-brand-dark hover:bg-slate-100 transition cursor-pointer"
+                  className={`absolute right-4 bottom-4 w-8 h-8 rounded-full flex items-center justify-center transition cursor-pointer shadow-sm ${
+                    isRecording 
+                      ? 'bg-rose-500 text-white animate-pulse' 
+                      : 'bg-white text-[#1A1A1A] hover:bg-slate-50'
+                  }`}
                 >
                   <Mic className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Footer Navigation Buttons */}
-            <div className="pt-6 border-t border-slate-100 flex gap-4">
+            {/* Footer Navigation Buttons (Desktop) */}
+            <div className="hidden md:flex flex-row items-center justify-between mt-12 border-t border-slate-200/60 pt-8">
               <button
                 type="button"
-                onClick={() => {
-                  setViewState('list');
-                  resetForm();
-                }}
-                className="flex-1 border border-slate-200 hover:bg-slate-50 text-slate-700 font-extrabold py-3.5 rounded-full text-xs transition cursor-pointer text-center"
+                onClick={() => setViewState('list')}
+                className="bg-white text-[#1A1A1A] font-medium text-[14px] px-6 py-3.5 rounded-full flex items-center justify-center gap-2 shadow-sm border border-slate-200 cursor-pointer hover:bg-slate-50 transition"
               >
-                Previous
+                <ArrowLeft className="w-4 h-4" /> Previous
               </button>
               
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 bg-[#1A1A1A] hover:bg-black text-white font-extrabold py-3.5 rounded-full text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="bg-[#1A1A1A] hover:bg-black text-white font-medium text-[14px] px-8 py-3.5 rounded-full flex items-center justify-center gap-2 transition cursor-pointer shadow-sm disabled:opacity-70"
               >
                 {submitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Creating Assessment...
-                  </>
+                  <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
-                    <span>Next</span>
-                    <span>→</span>
+                    Next <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
+            </div>
+
+            {/* Footer Navigation Buttons (Mobile Floating) */}
+            <div className="md:hidden fixed bottom-[115px] left-0 right-0 flex items-center justify-center gap-4 z-40 px-4 pointer-events-none">
+              <div className="pointer-events-auto flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setViewState('list')}
+                  className="bg-white text-[#1A1A1A] font-medium text-[14px] px-6 py-3.5 rounded-[24px] flex items-center justify-center gap-2 shadow-xl border border-slate-100 cursor-pointer w-[130px]"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Previous
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="bg-[#1A1A1A] text-white font-medium text-[14px] px-6 py-3.5 rounded-[24px] flex items-center justify-center gap-2 shadow-xl cursor-pointer w-[130px] disabled:opacity-70"
+                >
+                  {submitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      Next <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
           </form>

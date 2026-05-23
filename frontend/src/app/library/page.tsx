@@ -117,7 +117,7 @@ export default function LibraryPage() {
   const usedPercentage = Math.min(100, (parseFloat(totalUsedMB) / limitMB) * 100).toFixed(1);
 
   return (
-    <div className="flex-1 py-8 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto w-full flex flex-col font-sans animate-fadeIn">
+    <div className="flex-1 pb-8 w-full flex flex-col font-sans animate-fadeIn">
       
       {/* Description Header */}
       <p className="text-slate-500 text-sm font-semibold mb-8">

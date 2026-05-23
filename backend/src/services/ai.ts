@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import dotenv from 'dotenv';
-import { AssessmentSchema, GradesArraySchema } from './llmValidator';
+import { AssessmentSchema, GradesArraySchema } from '../utils/llmValidator';
 
 dotenv.config();
 
@@ -27,9 +27,9 @@ export const generateQuestions = async (params: AIInputParams) => {
     return getMockedQuestions(params);
   }
 
-  // Use gemini-1.5-flash as it is highly efficient and supports structured output
+  // Use gemini-flash-latest as it is highly efficient and supports structured output
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-flash-latest',
   });
 
   const prompt = `
@@ -48,6 +48,7 @@ INSTRUCTIONS FOR QUESTION BALANCING:
 2. Assign each question a difficulty level: "Easy", "Moderate", or "Hard". Ensure a realistic balance (e.g. about 30% Easy, 50% Moderate, 20% Hard) unless the user instructions say otherwise.
 3. Assign marks to each question based on its section and difficulty. The SUM of all question marks MUST be exactly ${params.totalMarks}.
 4. For Multiple Choice Questions (MCQ), you must provide an options array containing exactly 4 options, and set the correctAnswer to one of these options.
+5. For ALL other question types, you MUST provide a comprehensive answer, solution, or marking rubric in the \`correctAnswer\` field.
 `;
 
   // Define the JSON schema to enforce correct output format
@@ -87,7 +88,7 @@ INSTRUCTIONS FOR QUESTION BALANCING:
                   },
                   correctAnswer: {
                     type: SchemaType.STRING,
-                    description: 'The correct option (MCQs only)'
+                    description: 'The correct option (MCQs) or detailed solution/rubric (All other types)'
                   }
                 },
                 required: ['text', 'difficulty', 'marks']
@@ -272,63 +273,70 @@ function getMockedQuestions(params: AIInputParams, isFallback: boolean = false) 
           questions.push({
             text: `The document states: "${extractedSentence}". Explain the significance of this concept in your own words.`,
             difficulty,
-            marks
+            marks,
+            correctAnswer: 'A good answer should explain the core significance, linking it back to the overarching theme.'
           });
         } else if (titleL.includes('electric') || titleL.includes('physic')) {
           const shorts = [
-            "Explain the difference between alternating current (AC) and direct current (DC).",
-            "Why is tungsten used almost exclusively for filament of electric lamps?",
-            "State Joule’s law of heating and give its mathematical expression."
+            { text: "Explain the difference between alternating current (AC) and direct current (DC).", ans: "AC reverses direction periodically, DC flows only in one direction." },
+            { text: "Why is tungsten used almost exclusively for filament of electric lamps?", ans: "High melting point and retains heat without melting." },
+            { text: "State Joule’s law of heating and give its mathematical expression.", ans: "H = I²Rt. Heat produced is proportional to square of current, resistance, and time." }
           ];
-          questions.push({ text: shorts[i % shorts.length], difficulty, marks });
+          const q = shorts[i % shorts.length];
+          questions.push({ text: q.text, difficulty, marks, correctAnswer: q.ans });
         } else {
           const shortQuestions = [
-            `What are the fundamental principles of ${params.title || 'this topic'}, and how do they function?`,
-            `Define the key terminology associated with ${params.title || 'this topic'} and provide a real-world example.`,
-            `Describe the primary purpose and applications of the concepts covered in ${params.title || 'this topic'}.`
+            { text: `What are the fundamental principles of ${params.title || 'this topic'}, and how do they function?`, ans: 'Should outline the core mechanism and functional rules.' },
+            { text: `Define the key terminology associated with ${params.title || 'this topic'} and provide a real-world example.`, ans: 'Should accurately define the terms and provide an observable real-world example.' },
+            { text: `Describe the primary purpose and applications of the concepts covered in ${params.title || 'this topic'}.`, ans: 'Should mention practical uses and theoretical purposes.' }
           ];
-          questions.push({ text: shortQuestions[i % shortQuestions.length], difficulty, marks });
+          const q = shortQuestions[i % shortQuestions.length];
+          questions.push({ text: q.text, difficulty, marks, correctAnswer: q.ans });
         }
       } else if (type.toLowerCase().includes('numerical') || type.toLowerCase().includes('problem')) {
         if (extractedSentence) {
           questions.push({
             text: `Using the information provided in the document ("${extractedSentence}"), formulate a numerical problem and solve it showing all steps.`,
             difficulty,
-            marks
+            marks,
+            correctAnswer: 'Step 1: Identify given variables. Step 2: Apply appropriate formula. Step 3: Calculate the final value with units.'
           });
         } else if (titleL.includes('electric') || titleL.includes('physic')) {
           const nums = [
-            "A current of 0.5 A is drawn by a filament of an electric bulb for 10 minutes. Find the amount of electric charge that flows through the circuit.",
-            "An electric iron consumes energy at a rate of 840 W when heating is at the maximum rate. Calculate the current if the voltage is 220 V.",
-            "Calculate the equivalent resistance when two resistors of 10 Ω and 20 Ω are connected in parallel."
+            { text: "A current of 0.5 A is drawn by a filament of an electric bulb for 10 minutes. Find the amount of electric charge that flows through the circuit.", ans: "Q = I * t = 0.5 A * 600 s = 300 C" },
+            { text: "An electric iron consumes energy at a rate of 840 W when heating is at the maximum rate. Calculate the current if the voltage is 220 V.", ans: "I = P / V = 840 / 220 = 3.82 A" },
+            { text: "Calculate the equivalent resistance when two resistors of 10 Ω and 20 Ω are connected in parallel.", ans: "1/R = 1/10 + 1/20 = 3/20. R = 6.67 Ω" }
           ];
-          questions.push({ text: nums[i % nums.length], difficulty, marks });
+          const q = nums[i % nums.length];
+          questions.push({ text: q.text, difficulty, marks, correctAnswer: q.ans });
         } else {
-          questions.push({ text: `Calculate the expected result for a standard scenario involving ${params.title || 'this topic'}. Ensure you show all formulas, step-by-step working, and the final unit.`, difficulty, marks });
+          questions.push({ text: `Calculate the expected result for a standard scenario involving ${params.title || 'this topic'}. Ensure you show all formulas, step-by-step working, and the final unit.`, difficulty, marks, correctAnswer: 'Solution must include given data, formula, substitution, and final answer with correct units.' });
         }
       } else if (type.toLowerCase().includes('diagram') || type.toLowerCase().includes('graph')) {
         if (extractedSentence) {
           questions.push({
             text: `Based on the description in the document: "${extractedSentence}", draw a clearly labeled diagram illustrating this concept.`,
             difficulty,
-            marks
+            marks,
+            correctAnswer: 'Diagram must be neatly drawn with a pencil and properly labeled.'
           });
         } else if (titleL.includes('electric') || titleL.includes('physic')) {
-          questions.push({ text: "Draw a schematic diagram of a circuit consisting of a battery of three cells of 2 V each, a 5 Ω resistor, an 8 Ω resistor, and a plug key, all connected in series.", difficulty, marks });
+          questions.push({ text: "Draw a schematic diagram of a circuit consisting of a battery of three cells of 2 V each, a 5 Ω resistor, an 8 Ω resistor, and a plug key, all connected in series.", difficulty, marks, correctAnswer: 'A clear circuit diagram showing series connections of components.' });
         } else {
-          questions.push({ text: `Draw a clearly labeled diagram or graph illustrating the core relationships and components within ${params.title || 'this topic'}.`, difficulty, marks });
+          questions.push({ text: `Draw a clearly labeled diagram or graph illustrating the core relationships and components within ${params.title || 'this topic'}.`, difficulty, marks, correctAnswer: 'Clearly drawn diagram with all relevant axes and key components labeled.' });
         }
       } else {
         if (extractedSentence) {
           questions.push({
             text: `Critically analyze the following excerpt from the document: "${extractedSentence}". Discuss its broader implications.`,
             difficulty,
-            marks
+            marks,
+            correctAnswer: 'Answer should identify the core premise and discuss 2-3 logical implications with reasoning.'
           });
         } else if (titleL.includes('electric') || titleL.includes('physic')) {
-          questions.push({ text: "Discuss the environmental and economic impacts of widespread adoption of renewable energy sources for electricity generation compared to traditional fossil fuels.", difficulty, marks });
+          questions.push({ text: "Discuss the environmental and economic impacts of widespread adoption of renewable energy sources for electricity generation compared to traditional fossil fuels.", difficulty, marks, correctAnswer: 'Should discuss reduced carbon footprint (environmental) and initial high capital but low running costs (economic).' });
         } else {
-          questions.push({ text: `Provide a comprehensive analysis of the main theories described in ${params.title || 'this topic'}. Compare the advantages and potential limitations of these approaches.`, difficulty, marks });
+          questions.push({ text: `Provide a comprehensive analysis of the main theories described in ${params.title || 'this topic'}. Compare the advantages and potential limitations of these approaches.`, difficulty, marks, correctAnswer: 'Answer should list at least two theories, comparing their respective pros and cons logically.' });
         }
       }
       currentQuestionIndex++;
@@ -365,7 +373,7 @@ export const gradeAnswers = async (
   }
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-flash-latest',
   });
 
   const prompt = `
@@ -491,7 +499,7 @@ export const generateLessonPlan = async (params: LessonPlanInputParams): Promise
   }
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-flash-latest',
   });
 
   const prompt = `
@@ -561,7 +569,7 @@ export const generateQuestionBank = async (params: QuestionBankInputParams): Pro
   }
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-flash-latest',
   });
 
   const prompt = `
@@ -618,7 +626,7 @@ export const generateFeedbackRemarks = async (params: FeedbackRemarksInputParams
   }
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-flash-latest',
   });
 
   const prompt = `

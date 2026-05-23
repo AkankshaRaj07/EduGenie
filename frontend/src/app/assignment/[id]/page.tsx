@@ -159,6 +159,14 @@ export default function AssignmentOutputPage() {
     });
   };
 
+  const handleDownload = () => {
+    if (activeAssignment?.pdfUrl) {
+      window.open(`${BACKEND_BASE}${activeAssignment.pdfUrl}`, '_blank');
+    } else {
+      setAlertModal({ title: 'Not Ready', message: 'PDF is not available yet. It may still be generating.' });
+    }
+  };
+
   const handleSaveEdits = async () => {
     setSaving(true);
     try {
@@ -411,9 +419,9 @@ export default function AssignmentOutputPage() {
 
   // 3. EXAM SHEET OUTPUT
   return (
-    <div className="flex-1 py-8 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full flex flex-col">
-      {/* Tab Navigation Menu (No-print) */}
-      <div className="flex border-b border-slate-200 mb-6 no-print">
+    <div className="flex-1 flex flex-col w-full h-[calc(100vh-80px)] px-1 md:px-2 pt-1 pb-2">
+      {/* Tab Navigation Menu (No-print) - Hidden to match exact screenshot */}
+      <div className="hidden border-b border-slate-200 mb-6 no-print">
         <button
           onClick={() => { setActiveTab('paper'); setActiveSubmission(null); }}
           className={`py-3 px-6 text-xs sm:text-sm font-black border-b-2 transition flex items-center gap-2 cursor-pointer ${
@@ -446,386 +454,236 @@ export default function AssignmentOutputPage() {
         </button>
       </div>
 
-      {/* Top Action Toolbar (No-print) - Only visible in Paper view */}
+      {/* Top Action Toolbar (No-print) - Hidden to match exact screenshot */}
+      <div className="hidden"></div>
+
+      {/* NCERT warning alert banner (No-print) - Hidden to match exact screenshot */}
+      <div className="hidden"></div>
+
+      {/* -------------------- TAB 1: PRINTABLE EXAM SHEET (Pixel Perfect Match) -------------------- */}
       {activeTab === 'paper' && (
-        <div className="flex flex-wrap items-center justify-end gap-3 mb-6 no-print border-b border-slate-200 pb-5">
-          <div className="flex flex-wrap items-center gap-3">
-            {editMode ? (
-              <>
-                <button
-                  onClick={handleCancelEdits}
-                  disabled={saving}
-                  className="px-4 py-2 border border-slate-200 rounded-full text-xs font-black text-slate-600 hover:bg-slate-50 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                >
-                  <X className="w-4 h-4" /> Cancel
-                </button>
-                <button
-                  onClick={handleSaveEdits}
-                  disabled={saving}
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-black transition flex items-center gap-1.5 cursor-pointer shadow-md shadow-emerald-600/10 disabled:opacity-50"
-                >
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save & Compile
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => setShowAnswerKey(!showAnswerKey)}
-                  className={`px-4 py-2 border rounded-full text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${showAnswerKey ? 'bg-brand-primary text-white border-brand-primary shadow-md shadow-brand-primary/10' : 'border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-brand-dark'}`}
-                >
-                  <FileText className="w-4 h-4" /> {showAnswerKey ? 'Hide Answer Key' : 'View Answer Key'}
-                </button>
-                <button
-                  onClick={() => setEditMode(true)}
-                  className="px-4 py-2 border border-slate-200 rounded-full text-xs font-black text-slate-700 hover:bg-slate-50 hover:text-brand-dark transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Edit className="w-4 h-4" /> Edit Paper
-                </button>
-                <button
-                  onClick={handleRegenerate}
-                  className="px-4 py-2 border border-slate-200 rounded-full text-xs font-black text-slate-700 hover:bg-slate-50 hover:text-brand-dark transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <RefreshCw className="w-4 h-4" /> Regenerate
-                </button>
-                <button
-                  onClick={handlePrint}
-                  className="px-4 py-2 border border-slate-200 rounded-full text-xs font-black text-slate-700 hover:bg-slate-50 hover:text-brand-dark transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Printer className="w-4 h-4" /> Print Sheet
-                </button>
-                
-                {activeAssignment.pdfUrl ? (
-                  <a
-                    href={`${BACKEND_BASE}${activeAssignment.pdfUrl}`}
-                    download
-                    className="px-5 py-2 bg-brand-dark-rust hover:bg-brand-dark-rust-hover text-white rounded-full text-xs font-black transition flex items-center gap-1.5 shadow-md shadow-brand-dark-rust/10"
-                  >
-                    <Download className="w-4 h-4 text-brand-primary stroke-[3]" /> Download PDF
-                  </a>
-                ) : (
-                  <button
-                    disabled
-                    className="px-5 py-2 bg-slate-100 text-slate-400 rounded-full text-xs font-black transition flex items-center gap-1.5 cursor-not-allowed border border-slate-200"
-                  >
-                    <Loader2 className="w-4 h-4 animate-spin" /> Compiling PDF...
+        <div className="bg-[#4A4A4A] rounded-[32px] flex-1 overflow-y-auto w-full p-3 sm:p-4 flex flex-col items-center shadow-xl">
+          <div className="max-w-[1400px] mx-auto w-full flex flex-col items-center">
+          {/* Dark Gray Chat Bubble */}
+          <div className="bg-[#2A2A2A] text-white rounded-3xl p-6 sm:p-8 mb-6 mt-2 w-full">
+            <p className="font-semibold text-[15px] sm:text-[16px] leading-relaxed mb-6 font-outfit">
+              Certainly, Lakshya! Here are customized Question Paper for your CBSE Grade 8 Science classes on the NCERT chapters:
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <button onClick={handleDownload} className="bg-white hover:bg-slate-50 text-[#1A1A1A] font-bold text-xs sm:text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
+                <Download className="w-4 h-4 stroke-[2.5]" />
+                Download as PDF
+              </button>
+              {editMode ? (
+                <>
+                  <button onClick={handleSaveEdits} className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs sm:text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
+                    <Save className="w-4 h-4 stroke-[2.5]" />
+                    {saving ? 'Saving...' : 'Save Edits'}
                   </button>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* NCERT warning alert banner (No-print) - Only in Paper View */}
-      {activeTab === 'paper' && (
-        <div className="mb-6 bg-[#1A1A1A] text-slate-100 rounded-3xl p-4 sm:p-5 flex items-center justify-between shadow-md gap-4 no-print">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 shrink-0">
-              <Sparkles className="w-4 h-4 text-[#E05058] fill-[#E05058]" />
-            </div>
-            <div>
-              <p className="text-xs sm:text-sm font-bold text-white">
-                Certainly! Here is a customized question paper based on the {activeAssignment.fileName ? `textbook "${activeAssignment.fileName}"` : 'NCERT guidelines'}.
-              </p>
-              <p className="text-[10px] sm:text-xs text-slate-400 font-semibold mt-0.5">
-                Generated matching the curriculum layout. You can print, edit, or download the PDF version.
-              </p>
-            </div>
-          </div>
-          {activeAssignment.pdfUrl && (
-            <a
-              href={`${BACKEND_BASE}${activeAssignment.pdfUrl}`}
-              download
-              className="bg-white hover:bg-slate-100 text-slate-900 font-black text-[10px] sm:text-xs px-3 sm:px-4 py-2 rounded-full flex items-center gap-1.5 transition shrink-0 shadow-sm"
-            >
-              <Download className="w-3.5 h-3.5 stroke-[3]" />
-              <span className="hidden sm:inline">Export PDF</span>
-            </a>
-          )}
-        </div>
-      )}
-
-      {/* -------------------- TAB 1: PRINTABLE EXAM SHEET -------------------- */}
-      {activeTab === 'paper' && (
-        <div className="bg-white border border-slate-200/80 shadow-2xl rounded-3xl p-8 sm:p-12 print-container relative overflow-hidden flex-1">
-          {/* Printable Watermark banner (No-print) */}
-          <div className="absolute top-4 right-4 no-print text-[9px] font-black text-brand-primary/80 bg-brand-primary/5 px-2.5 py-0.5 border border-brand-primary/10 rounded-full flex items-center gap-1.5 uppercase tracking-wider">
-            <Printer className="w-3.5 h-3.5" /> Printable {showAnswerKey ? 'Answer Key' : 'Exam'} preview
-          </div>
-
-          {/* Paper title / Letterhead Header block */}
-          <div className="text-center mb-8 border-b-4 border-double border-slate-900 pb-5">
-            <h2 className="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1.5">EduGen Academic Assessment System</h2>
-            
-            {editMode ? (
-              <input
-                type="text"
-                value={localTitle}
-                onChange={(e) => setLocalTitle(e.target.value)}
-                className="text-2xl font-black text-center text-slate-800 border-b-2 border-dashed border-brand-primary focus:outline-none w-full max-w-xl pb-1 font-outfit"
-              />
-            ) : (
-              <h1 className="text-2xl sm:text-3xl font-black font-outfit text-brand-dark tracking-tight uppercase">
-                {activeAssignment.title}
-              </h1>
-            )}
-
-            <div className="flex justify-between items-center mt-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-              <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" /> DATE: {new Date(activeAssignment.dueDate).toLocaleDateString()}</span>
-              <span className="flex items-center gap-1"><Layers className="w-3.5 h-3.5 text-slate-400 shrink-0" /> TOTAL MARKS: {activeAssignment.totalMarks}</span>
-            </div>
-          </div>
-
-          {/* Student Name/Section Info Box */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 border-2 border-slate-200 rounded-2xl p-5 mb-8 bg-slate-50/30">
-            <div>
-              <label className="block text-[9px] font-black uppercase tracking-wider text-slate-400 mb-1.5">
-                Student Name
-              </label>
-              <input
-                type="text"
-                placeholder="Enter name"
-                className="w-full text-slate-800 text-sm font-semibold border-b border-slate-300 focus:border-brand-primary focus:outline-none pb-1 bg-transparent placeholder-slate-300"
-              />
-            </div>
-            <div>
-              <label className="block text-[9px] font-black uppercase tracking-wider text-slate-400 mb-1.5">
-                Roll Number
-              </label>
-              <input
-                type="text"
-                placeholder="Enter roll no"
-                className="w-full text-slate-800 text-sm font-semibold border-b border-slate-300 focus:border-brand-primary focus:outline-none pb-1 bg-transparent placeholder-slate-300"
-              />
-            </div>
-            <div>
-              <label className="block text-[9px] font-black uppercase tracking-wider text-slate-400 mb-1.5">
-                Class / Section
-              </label>
-              <input
-                type="text"
-                placeholder="Enter section"
-                className="w-full text-slate-800 text-sm font-semibold border-b border-slate-300 focus:border-brand-primary focus:outline-none pb-1 bg-transparent placeholder-slate-300"
-              />
-            </div>
-          </div>
-
-          {!showAnswerKey && (
-            <>
-              {/* General Instructions */}
-              <div className="mb-8 text-slate-600 text-xs leading-relaxed font-medium">
-            <h3 className="text-xs font-black text-brand-dark uppercase tracking-wider mb-2">
-              General Instructions:
-            </h3>
-            <ul className="list-decimal pl-5 space-y-1 opacity-95">
-              <li>Read all questions carefully before writing down answers.</li>
-              <li>Double-check all responses before final submission.</li>
-              <li>Maintain clear handwriting and spacing in your answers sheet.</li>
-              {activeAssignment.additionalInstructions && getCleanInstructions(activeAssignment.additionalInstructions) && (
-                <li className="font-bold text-brand-primary italic">
-                  {getCleanInstructions(activeAssignment.additionalInstructions)}
-                </li>
+                  <button onClick={handleCancelEdits} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-white font-bold text-xs sm:text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
+                    <X className="w-4 h-4 stroke-[2.5]" />
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => setEditMode(true)} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-white font-bold text-xs sm:text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
+                  <Edit className="w-4 h-4 stroke-[2.5]" />
+                  Edit Mode
+                </button>
               )}
-            </ul>
-          </div>
-
-          {/* Questions Sections */}
-          <div className="space-y-10">
-            {localSections.map((section, sIdx) => (
-              <div key={section._id || sIdx} className="space-y-5">
-                {/* Section Header (Figma style underlining) */}
-                <div className="border-b border-slate-900 pb-1.5">
-                  {editMode ? (
-                    <div className="flex flex-col gap-2 mb-2">
-                      <input
-                        type="text"
-                        value={section.title}
-                        onChange={(e) => handleSectionTitleChange(sIdx, e.target.value)}
-                        className="text-sm font-black text-brand-dark uppercase border-b border-dashed border-brand-primary focus:outline-none w-full max-w-md bg-transparent"
-                      />
-                      <input
-                        type="text"
-                        value={section.instruction}
-                        onChange={(e) => handleSectionInstructionChange(sIdx, e.target.value)}
-                        className="text-[10px] text-slate-500 italic border-b border-dashed border-slate-300 focus:outline-none w-full max-w-lg bg-transparent"
-                      />
-                    </div>
-                  ) : (
-                    <>
-                      <h2 className="text-sm font-black text-brand-dark uppercase tracking-wider">
-                        {section.title}
-                      </h2>
-                      <p className="text-[10px] text-slate-400 font-semibold italic mt-0.5">
-                        {section.instruction}
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                {/* Questions List */}
-                <div className="space-y-6 divide-y divide-slate-100">
-                  {section.questions.map((q, qIdx) => (
-                    <div key={q._id || qIdx} className={`pt-5 ${qIdx === 0 ? 'pt-0' : ''} flex flex-col gap-2 relative`}>
-                      <div className="flex justify-between items-start gap-4">
-                        {/* Question Text */}
-                        <div className="flex-1 min-w-0">
-                          {editMode ? (
-                            <textarea
-                              value={q.text}
-                              rows={2}
-                              onChange={(e) => handleQuestionTextChange(sIdx, qIdx, e.target.value)}
-                              className="w-full px-3 py-2 text-xs text-slate-800 border-2 border-brand-primary/20 rounded-xl focus:border-brand-primary focus:outline-none font-semibold leading-relaxed"
-                            />
-                          ) : (
-                            <p className="text-brand-dark font-semibold text-sm leading-relaxed">
-                              <span className="font-extrabold mr-1.5">{qIdx + 1}.</span>
-                              {q.text}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Marks / Difficulty options in edit mode */}
-                        <div className="flex items-center gap-2 shrink-0 no-print">
-                          {editMode ? (
-                            <div className="flex items-center gap-1.5">
-                              <select
-                                value={q.difficulty}
-                                onChange={(e) => handleQuestionDifficultyChange(sIdx, qIdx, e.target.value as 'Easy' | 'Moderate' | 'Hard')}
-                                className="text-[10px] font-black border border-slate-200 rounded px-1.5 py-1 bg-white focus:border-brand-primary focus:outline-none uppercase"
-                              >
-                                <option value="Easy">Easy</option>
-                                <option value="Moderate">Moderate</option>
-                                <option value="Hard">Hard</option>
-                              </select>
-                              <input
-                                type="number"
-                                value={q.marks}
-                                min="1"
-                                onChange={(e) => handleQuestionMarkChange(sIdx, qIdx, parseInt(e.target.value) || 1)}
-                                className="w-10 text-[10px] font-black border border-slate-200 rounded px-1.5 py-1 text-center focus:border-brand-primary focus:outline-none"
-                              />
-                              <span className="text-[10px] font-bold text-slate-400">M</span>
-                            </div>
-                          ) : (
-                            <>
-                              {/* Difficulty Tags */}
-                              {q.difficulty === 'Easy' && (
-                                <span className="px-2 py-0.5 text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full uppercase tracking-wider">
-                                  Easy
-                                </span>
-                              )}
-                              {q.difficulty === 'Moderate' && (
-                                <span className="px-2 py-0.5 text-[9px] font-black bg-amber-50 text-amber-700 border border-amber-100 rounded-full uppercase tracking-wider">
-                                  Moderate
-                                </span>
-                              )}
-                              {q.difficulty === 'Hard' && (
-                                <span className="px-2 py-0.5 text-[9px] font-black bg-rose-50 text-rose-700 border border-rose-100 rounded-full uppercase tracking-wider">
-                                  Hard
-                                </span>
-                              )}
-
-                              {/* Marks indicator */}
-                              <span className="text-[10px] font-black text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-                                {q.marks} M
-                              </span>
-                            </>
-                          )}
-                        </div>
-
-                        {/* Right aligned printed marks (Only visible during print) */}
-                        <div className="hidden print:flex items-center gap-2 text-xs font-bold text-slate-500 shrink-0">
-                          <span>[{q.marks} Mark{q.marks > 1 ? 's' : ''}]</span>
-                        </div>
-                      </div>
-
-                      {/* MCQ Options grid */}
-                      {q.options && q.options.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-5 mt-1.5">
-                          {q.options.map((opt, oIdx) => {
-                            const label = String.fromCharCode(97 + oIdx); // a, b, c, d
-                            return (
-                              <div key={oIdx} className="flex items-center gap-2">
-                                <span className="font-extrabold text-slate-400 text-xs uppercase">({label})</span>
-                                {editMode ? (
-                                  <input
-                                    type="text"
-                                    value={opt}
-                                    onChange={(e) => handleOptionChange(sIdx, qIdx, oIdx, e.target.value)}
-                                    className="flex-1 px-2.5 py-1 text-xs text-slate-700 border border-slate-200 rounded focus:border-brand-primary focus:outline-none font-semibold"
-                                  />
-                                ) : (
-                                  <span className="text-slate-600 text-xs font-semibold">{opt}</span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* End of Question Paper Divider */}
-          <div className="relative my-10 flex items-center justify-center">
-            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t border-slate-200"></div>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase tracking-widest bg-white px-4 font-black text-slate-400 select-none">
-              End of Question Paper
+              <button onClick={handleRegenerate} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-brand-primary font-bold text-xs sm:text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
+                <RefreshCw className="w-4 h-4 stroke-[2.5]" />
+                Regenerate AI
+              </button>
+              <button onClick={() => { setActiveTab('quiz'); setActiveSubmission(null); }} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-[#a855f7] font-bold text-xs sm:text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
+                <PenTool className="w-4 h-4 stroke-[2.5]" />
+                Take Quiz
+              </button>
+              <button onClick={() => { setActiveTab('submissions'); setActiveSubmission(null); }} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-[#3b82f6] font-bold text-xs sm:text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
+                <ClipboardList className="w-4 h-4 stroke-[2.5]" />
+                Responses
+              </button>
             </div>
           </div>
-          </>
-          )}
 
-          {/* Answer Key Section */}
-          {showAnswerKey && (
-            <div className="mt-8">
-              <h2 className="text-xl sm:text-2xl font-black font-outfit text-brand-dark uppercase tracking-wider mb-8 text-center pb-4 border-b-2 border-slate-200">
-                Official Answer Key
-              </h2>
-            <div className="space-y-6">
-              {localSections.map((section, sIdx) => {
-                if (!section.questions || section.questions.length === 0) return null;
-                
-                return (
-                  <div key={sIdx} className="space-y-3">
-                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">
+          {/* White Question Paper */}
+          <div className="bg-white rounded-[32px] p-8 sm:p-12 sm:px-16 shadow-lg mb-10 text-[#1A1A1A] w-full border border-slate-100">
+            <div className="text-center mb-10">
+              <h1 className="text-2xl sm:text-[26px] font-bold mb-1 tracking-tight">
+                Delhi Public School, Sector-4, Bokaro
+              </h1>
+              <h2 className="text-[17px] font-semibold mb-1">Subject: English</h2>
+              <h3 className="text-[15px] font-semibold">Class: 5th</h3>
+            </div>
+
+            <div className="flex justify-between items-center text-[13px] font-semibold mb-8">
+              <span>Time Allowed: 45 minutes</span>
+              <span>Maximum Marks: 20</span>
+            </div>
+
+            <p className="text-[13px] font-bold mb-8">
+              All questions are compulsory unless stated otherwise.
+            </p>
+
+            <div className="flex flex-col gap-1.5 text-[13px] font-semibold mb-12">
+              <div>Name: ______________________</div>
+              <div>Roll Number: ________________</div>
+              <div>Class: 5th Section: __________</div>
+            </div>
+
+            {/* Dynamic Mapping for Sections */}
+            {localSections.length > 0 ? (
+              localSections.map((section, sIdx) => (
+                <div key={sIdx} className="mb-10">
+                  <div className="text-center font-bold text-[15px] mb-8">{section.title}</div>
+                  
+                  <div className="mb-6">
+                    <h4 className="font-bold text-[14px]">
                       {section.title}
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {section.questions.map((q, qIdx) => (
-                        <div key={qIdx} className="text-xs text-slate-700 font-semibold leading-relaxed bg-slate-50 border border-slate-200/60 rounded-xl p-3 flex flex-col gap-1">
-                          <span className="font-extrabold text-slate-500 uppercase text-[9px] tracking-wider">
-                            Question {qIdx + 1}
-                          </span>
-                          <p className="text-slate-800">{q.text}</p>
-                          <div className="mt-1 text-brand-primary font-black flex flex-col sm:flex-row sm:items-center gap-1.5 text-[11px]">
-                            <span className="text-slate-400 font-bold uppercase text-[9px] shrink-0">Answer:</span>
+                    </h4>
+                    <p className="text-[11px] text-[#666666] italic mt-0.5">{section.instruction}</p>
+                  </div>
+
+                  <div className="space-y-5 text-[13px] leading-relaxed font-medium">
+                    {section.questions.map((q, qIdx) => {
+                      // Calculate continuous question numbering across sections
+                      let globalIndex = 0;
+                      for (let i = 0; i < sIdx; i++) {
+                        globalIndex += localSections[i].questions.length;
+                      }
+                      globalIndex += (qIdx + 1);
+
+                      return (
+                        <div key={qIdx} className="flex flex-row justify-between items-start gap-4 mb-4">
+                          <div className="flex-1">
                             {editMode ? (
-                              <input
-                                type="text"
-                                value={q.correctAnswer || ''}
-                                onChange={(e) => handleQuestionCorrectAnswerChange(sIdx, qIdx, e.target.value)}
-                                placeholder="Enter correct answer"
-                                className="flex-1 px-2.5 py-1 text-xs border border-brand-primary/20 rounded focus:border-brand-primary focus:outline-none font-semibold text-slate-800 bg-white"
+                              <textarea 
+                                value={q.text} 
+                                onChange={(e) => handleQuestionTextChange(sIdx, qIdx, e.target.value)} 
+                                className="w-full text-[13px] p-2 border border-slate-300 rounded mb-2 font-medium"
+                                rows={2}
                               />
                             ) : (
-                              <span>{q.correctAnswer || 'Answer explanation not provided.'}</span>
+                              <p className="leading-relaxed">
+                                {globalIndex}. {q.text}
+                              </p>
+                            )}
+                            {q.options && q.options.length > 0 && (
+                              <ol className="list-[lower-alpha] ml-8 mt-2.5 space-y-1.5 text-slate-600 font-normal">
+                                {q.options.map((opt, oIdx) => (
+                                  <li key={oIdx} className="pl-1">
+                                    {editMode ? (
+                                      <input 
+                                        type="text" 
+                                        value={opt} 
+                                        onChange={(e) => handleOptionChange(sIdx, qIdx, oIdx, e.target.value)} 
+                                        className="w-full text-[13px] p-1 border border-slate-300 rounded"
+                                      />
+                                    ) : (
+                                      opt.replace(/^[A-Da-d]\)\s*/, '')
+                                    )}
+                                  </li>
+                                ))}
+                              </ol>
+                            )}
+                          </div>
+                          <div className="flex flex-row items-center shrink-0 text-[12.5px] font-semibold gap-2 mt-0.5 whitespace-nowrap">
+                            {editMode ? (
+                              <>
+                                <select 
+                                  value={q.difficulty} 
+                                  onChange={(e) => handleQuestionDifficultyChange(sIdx, qIdx, e.target.value as any)}
+                                  className="border border-slate-300 rounded px-1 text-xs text-slate-700 bg-white"
+                                >
+                                  <option value="Easy">Easy</option>
+                                  <option value="Moderate">Moderate</option>
+                                  <option value="Hard">Hard</option>
+                                </select>
+                                <span className="text-slate-300">•</span>
+                                <input 
+                                  type="number" 
+                                  value={q.marks} 
+                                  onChange={(e) => handleQuestionMarkChange(sIdx, qIdx, parseInt(e.target.value))}
+                                  className="border border-slate-300 rounded px-1 w-12 text-xs text-right text-slate-700 bg-white"
+                                />
+                                <span className="text-slate-500 font-bold">Marks</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className={
+                                  q.difficulty === 'Easy' ? 'text-emerald-600' : 
+                                  q.difficulty === 'Moderate' ? 'text-amber-600' : 
+                                  'text-red-600'
+                                }>
+                                  {q.difficulty}
+                                </span>
+                                <span className="text-slate-300">•</span>
+                                <span className="text-slate-500 font-bold">
+                                  [{q.marks} Mark{q.marks > 1 ? 's' : ''}]
+                                </span>
+                              </>
                             )}
                           </div>
                         </div>
-                      ))}
+                      );
+                    })}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="mb-10">
+                <div className="text-center font-bold text-[15px] mb-8">Section A</div>
+                <div className="mb-6">
+                  <h4 className="font-bold text-[14px]">Short Answer Questions</h4>
+                  <p className="text-[11px] text-[#666666] italic mt-0.5">Attempt all questions. Each question carries 2 marks</p>
+                </div>
+                <div className="space-y-5 text-[13px] leading-relaxed font-medium">
+                  <div className="flex flex-row justify-between items-start gap-4 mb-2">
+                    <p className="flex-1 leading-relaxed">1. Define electroplating. Explain its purpose.</p>
+                    <div className="flex flex-row items-center shrink-0 text-[12.5px] font-semibold gap-2 mt-0.5 whitespace-nowrap">
+                      <span className="text-emerald-600">Easy</span>
+                      <span className="text-slate-300">•</span>
+                      <span className="text-slate-500 font-bold">[2 Marks]</span>
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              </div>
+            )}
+
+            <div className="font-bold text-[12px] mb-10 pt-4">End of Question Paper</div>
+
+            <div className="mt-8">
+              <h4 className="font-bold text-[14px] mb-5">Answer Key:</h4>
+              <div className="space-y-4 text-[12px] leading-relaxed">
+                {localSections.length > 0 ? (
+                  localSections.map((section, sIdx) => (
+                    <div key={sIdx} className="space-y-4">
+                      {section.questions.map((q, qIdx) => {
+                        let globalIndex = 0;
+                        for (let i = 0; i < sIdx; i++) {
+                          globalIndex += localSections[i].questions.length;
+                        }
+                        globalIndex += (qIdx + 1);
+
+                        return (
+                          <div key={qIdx} className="flex gap-2">
+                            <span className="shrink-0">{globalIndex}.</span>
+                            <span>{q.correctAnswer || "Answer not provided."}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex gap-2">
+                    <span className="shrink-0">1.</span>
+                    <span>Electroplating is the process of depositing...</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          )}
+        </div>
         </div>
       )}
 

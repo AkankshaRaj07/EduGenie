@@ -89,7 +89,10 @@ export const generateAssignmentPDF = (assignment: IAssignment): Promise<string> 
       }
       
       // Remove time prompt if present
-      cleanInstructions = cleanInstructions.replace(/Generate for \d+(?:\.\d+)?\s*hours?(?: exam)?\.?/ig, '').trim();
+      cleanInstructions = cleanInstructions.replace(/Generate for \d+(?:\.\d+)?\s*hours?(?: exam)?(?: question)?(?: paper)?\.?/ig, '').trim();
+
+      // Remove "None." if the frontend defaulted it
+      cleanInstructions = cleanInstructions.replace(/^None\.?$/i, '').trim();
 
       const defaultInst = '1. Read all questions carefully before answering.\n2. Write your answers neatly in the space provided.\n3. Verify all code syntax or reasoning steps where requested.';
       const instructions = cleanInstructions 
@@ -114,13 +117,19 @@ export const generateAssignmentPDF = (assignment: IAssignment): Promise<string> 
         doc.fontSize(9.5).font('Helvetica-Oblique').fillColor('#475569').text(cleanText(section.instruction), 50, doc.y, { width: 495, align: 'left' });
         doc.moveDown(0.8);
 
+        let previousQuestionsCount = 0;
+        for (let i = 0; i < sIndex; i++) {
+          previousQuestionsCount += assignment.sections[i].questions.length;
+        }
+
         section.questions.forEach((q, qIndex) => {
           // Prevent question split
           if (doc.y > 710) {
             doc.addPage();
           }
 
-          const qNum = `${qIndex + 1}. `;
+          const globalIndex = previousQuestionsCount + qIndex + 1;
+          const qNum = `${globalIndex}. `;
           const difficultyLabel = `[${q.difficulty}]`;
           const marksLabel = `[${q.marks} Mark${q.marks > 1 ? 's' : ''}]`;
           
@@ -154,7 +163,8 @@ export const generateAssignmentPDF = (assignment: IAssignment): Promise<string> 
                 doc.addPage();
               }
               const label = String.fromCharCode(97 + oIndex); // a, b, c, d
-              doc.fontSize(10).font('Helvetica').fillColor('#334155').text(cleanText(`    (${label})  ${opt}`), 65, doc.y, {
+              const cleanOpt = opt.replace(/^[A-Da-d]\)\s*/, '');
+              doc.fontSize(10).font('Helvetica').fillColor('#334155').text(cleanText(`    (${label})  ${cleanOpt}`), 65, doc.y, {
                 width: 480,
                 align: 'left',
                 lineGap: 1

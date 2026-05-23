@@ -84,7 +84,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex-1 py-8 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto w-full flex flex-col font-sans animate-fadeIn">
+    <div className="flex-1 pb-8 w-full flex flex-col font-sans animate-fadeIn">
       {/* 1. Header Hero Welcome Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>

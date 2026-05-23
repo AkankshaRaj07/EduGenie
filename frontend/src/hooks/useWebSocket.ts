@@ -5,13 +5,6 @@ import { useAssignmentStore, IAssignment } from '../store/useAssignmentStore';
 const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'http://localhost:5000';
 
 export const useWebSocket = (assignmentId?: string) => {
-  const { 
-    setJobProgress, 
-    setJobStatus, 
-    setActiveAssignment,
-    setErrorMessage 
-  } = useAssignmentStore();
-
   useEffect(() => {
     if (!assignmentId) return;
 
@@ -26,7 +19,10 @@ export const useWebSocket = (assignmentId?: string) => {
       socket.emit('join-room', assignmentId);
     });
 
-    // Listen for progress updates
+    // Listen for progress updates.
+    // We call useAssignmentStore.getState() inside the handler instead of
+    // closing over the destructured actions — this keeps the dependency array
+    // clean and prevents an infinite reconnect loop.
     socket.on('job-status-update', (payload: {
       assignmentId: string;
       status: 'pending' | 'processing' | 'completed' | 'failed';
@@ -34,18 +30,21 @@ export const useWebSocket = (assignmentId?: string) => {
       data?: Record<string, unknown> | null;
     }) => {
       console.log('[WS Event] job-status-update received:', payload);
-      
+
+      const { setJobProgress, setJobStatus, setActiveAssignment, setErrorMessage } =
+        useAssignmentStore.getState();
+
       if (payload.assignmentId === assignmentId) {
         setJobProgress(payload.progress);
         setJobStatus(payload.status);
 
         if (payload.status === 'completed' && payload.data) {
-          // Type casting since we know the shape matches IAssignment
           setActiveAssignment(payload.data as unknown as IAssignment);
         } else if (payload.status === 'failed') {
-          const errMsg = typeof payload.data?.error === 'string' 
-            ? payload.data.error 
-            : 'AI generation failed during background process.';
+          const errMsg =
+            typeof payload.data?.error === 'string'
+              ? payload.data.error
+              : 'AI generation failed during background process.';
           setErrorMessage(errMsg);
         }
       }
@@ -55,12 +54,10 @@ export const useWebSocket = (assignmentId?: string) => {
       console.log('Disconnected from WS server');
     });
 
-    // Cleanup on unmount or id change
+    // Cleanup on unmount or assignmentId change
     return () => {
-      if (socket) {
-        socket.disconnect();
-        console.log(`Disconnected WS connection for room: ${assignmentId}`);
-      }
+      socket.disconnect();
+      console.log(`Disconnected WS connection for room: ${assignmentId}`);
     };
-  }, [assignmentId, setJobProgress, setJobStatus, setActiveAssignment, setErrorMessage]);
+  }, [assignmentId]); // Only re-run when the assignment changes — NOT on every store action re-reference
 };

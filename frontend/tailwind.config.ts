@@ -38,8 +38,11 @@ const config: Config = {
         }
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "Inter", "sans-serif"],
+        sans: ["var(--font-bricolage)", "Bricolage Grotesque", "sans-serif"],
+        bricolage: ["var(--font-bricolage)", "Bricolage Grotesque", "sans-serif"],
+        inter: ["var(--font-inter)", "Inter", "sans-serif"],
         outfit: ["var(--font-outfit)", "Outfit", "sans-serif"],
+        poppins: ["var(--font-poppins)", "Poppins", "sans-serif"],
         mono: ["var(--font-geist-mono)", "Roboto Mono", "monospace"],
       },
     },
