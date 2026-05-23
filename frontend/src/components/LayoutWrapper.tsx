@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { 
   LayoutGrid, 
   FileText, 
@@ -25,6 +25,7 @@ export default function LayoutWrapper({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { sidebarOpen, setSidebarOpen, viewState, setViewState, toastMessage, setToastMessage } = useAssignmentStore();
 
   React.useEffect(() => {
@@ -62,7 +63,7 @@ export default function LayoutWrapper({
       <main className="flex-1 md:pl-[272px] flex flex-col min-w-0 pb-24 md:pb-8 relative">
         
         {/* Unified persistent top header (No-print) */}
-        <div className="w-full px-4 pt-4 md:px-4 md:pt-6 no-print mb-2">
+        <div className="w-full px-4 pt-4 md:px-4 md:pt-6 no-print mb-6">
           <div className="bg-white rounded-[24px] px-4 md:px-6 py-2.5 flex items-center justify-between shadow-sm">
             
             {/* Left Side: Dynamic back button, page title, or mobile logo */}
@@ -118,6 +119,8 @@ export default function LayoutWrapper({
                         router.push('/');
                       } else if (viewState === 'create') {
                         setViewState('list');
+                      } else if (pathname === '/toolkit' && searchParams.get('tool')) {
+                        router.push('/toolkit');
                       }
                     }}
                     className="w-10 h-10 rounded-full bg-white text-slate-700 flex items-center justify-center hover:bg-slate-50 transition cursor-pointer shrink-0"
@@ -165,6 +168,28 @@ export default function LayoutWrapper({
             </div>
 
           </div>
+
+          {/* Mobile Back Button and Title */}
+          {!isAssignmentOutput && (
+            <div className="md:hidden flex items-center justify-center relative mt-6 mb-2 px-2">
+              <button
+                onClick={() => {
+                  if (pathname.startsWith('/assignment')) {
+                    setViewState('list');
+                    router.push('/');
+                  } else if (viewState === 'create') {
+                    setViewState('list');
+                  } else if (pathname === '/toolkit' && searchParams.get('tool')) {
+                    router.push('/toolkit');
+                  }
+                }}
+                className="absolute left-2 w-10 h-10 rounded-full bg-[#E0E0E0] text-slate-700 flex items-center justify-center active:scale-95 transition cursor-pointer border border-white/20 shadow-sm"
+              >
+                <ArrowLeft className="w-5 h-5 stroke-[2]" />
+              </button>
+              <h1 className="text-[15px] font-bold text-slate-800 tracking-tight">{getPageTitle()}</h1>
+            </div>
+          )}
         </div>
 
         {/* 3. Page Content */}

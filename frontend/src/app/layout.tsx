@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Outfit, Poppins, Bricolage_Grotesque } from "next/font/google";
+import { Suspense } from 'react';
 import LayoutWrapper from "../components/LayoutWrapper";
+import SplashOverlay from "../components/SplashOverlay";
 import "./globals.css";
 
 const inter = Inter({
@@ -41,7 +43,10 @@ export default function RootLayout({
       className={`${inter.variable} ${outfit.variable} ${poppins.variable} ${bricolage.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-brand-warm font-bricolage">
-        <LayoutWrapper>{children}</LayoutWrapper>
+        <Suspense fallback={null}>
+          <SplashOverlay />
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </Suspense>
       </body>
     </html>
   );

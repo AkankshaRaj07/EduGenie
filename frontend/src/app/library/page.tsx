@@ -197,13 +197,13 @@ export default function LibraryPage() {
                     filteredMaterials.map(doc => (
                       <tr key={doc._id} className="hover:bg-slate-50/30 transition group">
                         {/* Title & Date */}
-                        <td className="px-5 py-4.5">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-rose-50 border border-[#FECDD3] text-[#E05058] rounded-xl shrink-0">
-                              <FileText className="w-4.5 h-4.5" />
+                        <td className="px-6 py-6">
+                          <div className="flex items-center gap-4">
+                            <div className="p-3 bg-brand-primary/10 border border-brand-primary/20 text-brand-primary rounded-xl shrink-0">
+                              <FileText className="w-5 h-5" />
                             </div>
                             <div className="min-w-0 max-w-[240px] sm:max-w-[280px]">
-                              <p className="text-xs font-black text-brand-dark truncate leading-tight group-hover:text-[#E05058] transition">{doc.name}</p>
+                              <p className="text-[13px] font-black text-brand-dark truncate leading-tight group-hover:text-brand-primary transition">{doc.name}</p>
                               <span className="text-[9px] text-slate-400 font-bold mt-0.5 inline-block">
                                 Uploaded: {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-') : 'Recent'}
                               </span>
@@ -212,21 +212,21 @@ export default function LibraryPage() {
                         </td>
 
                         {/* Size */}
-                        <td className="px-5 py-4.5 text-slate-500 font-bold">
+                        <td className="px-6 py-6 text-slate-500 font-bold text-[13px]">
                           {doc.size}
                         </td>
 
                         {/* Category */}
-                        <td className="px-5 py-4.5">
-                          <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-50 text-slate-500 border border-slate-200">
+                        <td className="px-6 py-6">
+                          <span className="px-3 py-1 rounded text-[10px] font-bold bg-slate-50 text-slate-500 border border-slate-200">
                             {doc.category}
                           </span>
                         </td>
 
                         {/* Grounding uses */}
-                        <td className="px-5 py-4.5">
-                          <div className="flex items-center gap-2">
-                            <span className="font-black text-brand-dark">{doc.groundingCount || 0} times</span>
+                        <td className="px-6 py-6">
+                          <div className="flex items-center gap-3">
+                            <span className="font-black text-[13px] text-brand-dark">{doc.groundingCount || 0} times</span>
                             {(doc.groundingCount || 0) > 10 && (
                               <span className="px-1.5 py-0.5 text-[8px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 rounded flex items-center gap-0.5 uppercase tracking-wide">
                                 <Sparkles className="w-2.5 h-2.5 text-emerald-500 fill-emerald-50" /> High Grounding
@@ -236,8 +236,8 @@ export default function LibraryPage() {
                         </td>
 
                         {/* Actions */}
-                        <td className="px-5 py-4.5 text-right">
-                          <div className="flex justify-end gap-2.5">
+                        <td className="px-6 py-6 text-right">
+                          <div className="flex justify-end gap-3">
                             <a
                               href={doc.fileUrl ? (doc.fileUrl.startsWith('http') ? doc.fileUrl : `http://localhost:5000${doc.fileUrl}`) : '#'}
                               target="_blank"

@@ -105,6 +105,8 @@ export default function Dashboard() {
   };
   const [file, setFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [inputMethod, setInputMethod] = useState<'file' | 'text'>('file');
+  const [pastedText, setPastedText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
@@ -321,7 +323,10 @@ ${additionalInstructions || 'None.'}`;
 
       formData.append('additionalInstructions', structuredPrompt);
       
-      if (file) {
+      if (inputMethod === 'text' && pastedText.trim()) {
+        const textFile = new File([pastedText], "pasted.txt", { type: "text/plain" });
+        formData.append('file', textFile);
+      } else if (inputMethod === 'file' && file) {
         formData.append('file', file);
       }
 
@@ -348,6 +353,8 @@ ${additionalInstructions || 'None.'}`;
     ]);
     setAdditionalInstructions('');
     setFile(null);
+    setInputMethod('file');
+    setPastedText('');
     setFormErrors({});
     setGeneralError(null);
   };
@@ -385,7 +392,7 @@ ${additionalInstructions || 'None.'}`;
           {assignments.length > 0 && (
             <>
               {/* Header Row */}
-              <div className="flex flex-row items-start gap-3 mb-3 pl-0">
+              <div className="hidden md:flex flex-row items-start gap-3 mb-3 pl-0">
                 <span className="w-5 h-5 mt-[1px] rounded-full bg-[#A7F3D0]/70 flex items-center justify-center shrink-0">
                   <span className="w-3 h-3 rounded-full bg-[#34D399]"></span>
                 </span>
@@ -400,21 +407,22 @@ ${additionalInstructions || 'None.'}`;
               </div>
 
               {/* Filtering & Search Toolbar */}
-              <div className="flex items-center justify-between bg-white rounded-[24px] shadow-sm p-1.5 mb-6 w-full border border-slate-100">
-                <div className="flex items-center gap-2 pl-3">
+              <div className="flex items-center bg-white rounded-[24px] shadow-sm p-2 mb-6 w-full border border-slate-100 gap-2">
+                <div className="flex items-center gap-2 pl-4 pr-2 border-r border-slate-200 shrink-0">
                   <Filter className="w-4 h-4 text-slate-400" />
-                  <span className="text-[13px] font-semibold text-slate-400">Filter By</span>
+                  <span className="text-[13px] font-semibold text-slate-400 hidden sm:inline">Filter</span>
+                  <span className="text-[13px] font-semibold text-slate-400 sm:hidden">Filter</span>
                 </div>
                 
-                <div className="relative w-80">
-                  <div className="relative flex items-center border border-slate-200 rounded-full px-4 py-2 bg-white">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-4" />
+                <div className="relative flex-1">
+                  <div className="relative flex items-center bg-white">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-2" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search Assignment"
-                      className="w-full bg-transparent pl-6 pr-2 text-[13px] font-medium text-slate-700 placeholder-slate-400 focus:outline-none"
+                      placeholder="Search Name"
+                      className="w-full bg-transparent pl-8 pr-2 text-[13px] font-medium text-slate-700 placeholder-slate-400 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -460,11 +468,11 @@ ${additionalInstructions || 'None.'}`;
                 <div
                   key={asg._id}
                   onClick={() => router.push(`/assignment/${asg._id}`)}
-                  className="bg-white rounded-[28px] p-6 shadow-sm border border-slate-100 flex flex-col justify-between min-h-[220px] cursor-pointer"
+                  className="bg-white rounded-[24px] md:rounded-[28px] p-5 md:p-6 shadow-sm border border-slate-100 flex flex-col justify-between min-h-[100px] md:min-h-[220px] cursor-pointer"
                 >
                   {/* Card Header & Title */}
                   <div className="flex justify-between items-start gap-4">
-                    <h3 className="text-[22px] font-bold font-outfit text-[#1A1A1A] leading-snug">
+                    <h3 className="text-[16px] md:text-[22px] font-bold font-outfit text-[#1A1A1A] leading-snug">
                       {asg.title}
                     </h3>
                     
@@ -505,7 +513,7 @@ ${additionalInstructions || 'None.'}`;
                   </div>
 
                   {/* Card bottom details */}
-                  <div className="mt-8 flex justify-between items-center text-[13px]">
+                  <div className="mt-4 md:mt-8 flex flex-row items-center gap-3 md:gap-0 justify-start md:justify-between text-[11px] md:text-[13px]">
                     <div className="text-slate-500">
                       <span className="font-bold text-[#1A1A1A]">Assigned on :</span> {formatDate(asg.createdAt)}
                     </div>
@@ -625,57 +633,81 @@ ${additionalInstructions || 'None.'}`;
 
               {/* Grounding textbook upload box */}
               <div className="mt-2">
-              <div
-                onDragEnter={handleDrag}
-                onDragOver={handleDrag}
-                onDragLeave={handleDrag}
-                onDrop={handleDrop}
-                className={`relative border-[2px] border-dashed rounded-[24px] p-8 transition text-center flex flex-col items-center justify-center ${
-                  dragActive 
-                    ? 'border-[#E05058] bg-[#E05058]/5' 
-                    : file 
-                    ? 'border-emerald-300 bg-emerald-50/20' 
-                    : 'border-[#D4D4D4] bg-[#FAFAFA] hover:border-[#A3A3A3]'
-                }`}
-              >
-                <input
-                  type="file"
-                  id="file-upload"
-                  className="hidden"
-                  accept=".pdf,.txt,.jpg,.jpeg,.png"
-                  onChange={handleFileChange}
-                />
+                <div className="flex justify-end mb-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setInputMethod(inputMethod === 'file' ? 'text' : 'file')}
+                    className="text-[13px] font-bold text-brand-primary hover:text-brand-primary/80 transition underline"
+                  >
+                    {inputMethod === 'file' ? 'Or paste text instead' : 'Upload a document instead'}
+                  </button>
+                </div>
                 
-                {file ? (
-                  <div className="flex flex-col items-center">
-                    <div className="p-2.5 bg-emerald-100 text-emerald-700 rounded-full mb-2">
-                      <FileText className="w-5 h-5" />
-                    </div>
-                    <p className="text-[15px] font-bold text-slate-800 max-w-sm truncate">{file.name}</p>
-                    <p className="text-[12px] text-slate-400 mt-1.5 mb-6">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
-                    <button
-                      type="button"
-                      onClick={() => setFile(null)}
-                      className="px-6 py-2 bg-rose-50 border border-rose-100 text-[#E05058] font-bold text-[13px] rounded-full hover:bg-rose-100 transition inline-block cursor-pointer"
-                    >
-                      Remove File
-                    </button>
+                {inputMethod === 'text' ? (
+                  <div className="relative border-[2px] border-dashed border-[#D4D4D4] rounded-[24px] p-2 transition bg-[#FAFAFA] focus-within:border-brand-primary/50">
+                    <textarea 
+                      value={pastedText}
+                      onChange={(e) => setPastedText(e.target.value)}
+                      placeholder="Paste your syllabus, topic list, or document content here..."
+                      className="w-full h-[220px] resize-none bg-transparent p-4 text-[14px] text-[#1A1A1A] placeholder-[#A3A3A3] focus:outline-none rounded-[20px]"
+                    />
                   </div>
                 ) : (
-                  <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center w-full py-1">
-                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center mb-3 shadow-sm border border-slate-100">
-                      <UploadCloud className="w-5 h-5 text-[#1A1A1A]" />
-                    </div>
-                    <p className="text-[13px] font-medium text-[#1A1A1A]">Choose a file or drag & drop it here</p>
-                    <p className="text-[11px] text-[#A3A3A3] font-medium mt-1.5 mb-5 tracking-wide uppercase">JPEG, PNG, upto 10MB</p>
-                    <span className="px-5 py-2 bg-white shadow-sm border border-slate-100 text-[#1A1A1A] font-bold text-[12px] rounded-full transition inline-block">
-                      Browse Files
-                    </span>
-                  </label>
+                  <div
+                    onDragEnter={handleDrag}
+                    onDragOver={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDrop={handleDrop}
+                    className={`relative border-[2px] border-dashed rounded-[24px] p-8 transition text-center flex flex-col items-center justify-center ${
+                      dragActive 
+                        ? 'border-[#E05058] bg-[#E05058]/5' 
+                        : file 
+                        ? 'border-emerald-300 bg-emerald-50/20' 
+                        : 'border-[#D4D4D4] bg-[#FAFAFA] hover:border-[#A3A3A3]'
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      id="file-upload"
+                      className="hidden"
+                      accept=".pdf,.txt,.jpg,.jpeg,.png"
+                      onChange={handleFileChange}
+                    />
+                    
+                    {file ? (
+                      <div className="flex flex-col items-center">
+                        <div className="p-2.5 bg-emerald-100 text-emerald-700 rounded-full mb-2">
+                          <FileText className="w-5 h-5" />
+                        </div>
+                        <p className="text-[15px] font-bold text-slate-800 max-w-sm truncate">{file.name}</p>
+                        <p className="text-[12px] text-slate-400 mt-1.5 mb-6">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                        <button
+                          type="button"
+                          onClick={() => setFile(null)}
+                          className="px-6 py-2 bg-rose-50 border border-rose-100 text-[#E05058] font-bold text-[13px] rounded-full hover:bg-rose-100 transition inline-block cursor-pointer"
+                        >
+                          Remove File
+                        </button>
+                      </div>
+                    ) : (
+                      <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center w-full py-1">
+                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center mb-3 shadow-sm border border-slate-100">
+                          <UploadCloud className="w-5 h-5 text-[#1A1A1A]" />
+                        </div>
+                        <p className="text-[13px] font-medium text-[#1A1A1A]">Choose a file or drag & drop it here</p>
+                        <p className="text-[11px] text-[#A3A3A3] font-medium mt-1.5 mb-5 tracking-wide uppercase">JPEG, PNG, upto 10MB</p>
+                        <span className="px-5 py-2 bg-white shadow-sm border border-slate-100 text-[#1A1A1A] font-bold text-[12px] rounded-full transition inline-block">
+                          Browse Files
+                        </span>
+                      </label>
+                    )}
+                  </div>
+                )}
+                
+                {inputMethod === 'file' && (
+                  <p className="text-center text-[12px] md:text-[13px] text-[#7A7A7A] font-medium mt-4">Upload images of your preferred document/<br className="md:hidden"/>image</p>
                 )}
               </div>
-              <p className="text-center text-[12px] md:text-[13px] text-[#7A7A7A] font-medium mt-4">Upload images of your preferred document/<br className="md:hidden"/>image</p>
-            </div>
             </div>
 
             {/* Due Date row */}

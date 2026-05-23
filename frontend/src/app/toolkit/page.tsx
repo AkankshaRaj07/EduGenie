@@ -17,10 +17,21 @@ import {
   ClipboardCheck
 } from 'lucide-react';
 import { useAssignmentStore } from '../../store/useAssignmentStore';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function ToolkitPage() {
   const { generateToolkitContent, setToastMessage } = useAssignmentStore();
-  const [activeTool, setActiveTool] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  const activeTool = searchParams.get('tool');
+  const setActiveTool = (tool: string | null) => {
+    if (tool) {
+      router.push(`/toolkit?tool=${tool}`);
+    } else {
+      router.push(`/toolkit`);
+    }
+  };
   
   // Simulated State Handlers
   const [isGenerating, setIsGenerating] = useState(false);
@@ -252,14 +263,8 @@ export default function ToolkitPage() {
         /* ==================== ACTIVE TOOL PANEL ==================== */
         <div className="flex-1 flex flex-col lg:grid lg:grid-cols-12 gap-8 items-start">
           
-          {/* Back button and Config Panel (Left 5 cols) */}
+          {/* Config Panel (Left 5 cols) */}
           <div className="lg:col-span-5 w-full space-y-6">
-            <button
-              onClick={resetToolkit}
-              className="w-9 h-9 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-50 transition cursor-pointer shadow-sm"
-            >
-              <ArrowLeft className="w-4.5 h-4.5 stroke-[2.5]" />
-            </button>
 
             <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm">
               {activeTool === 'lesson_plan' && (
