@@ -8,9 +8,12 @@ The VedaAI backend is a robust Node.js/Express service responsible for handling 
 - **WebSocket Server:** Uses `socket.io` mapped onto the core HTTP server to push job progress events asynchronously to active connected clients.
 
 ## Modular Controllers
-- **`assignmentController.ts`:** Handles the orchestration of new assessment creation. It inserts the preliminary document into MongoDB and dispatches a BullMQ job. Features a dynamic `/download` endpoint that regenerates ephemeral PDF files on the fly for cloud hosts like Render.
-- **`libraryController.ts`:** Manages the context library. Uses `multer` for raw file uploads. Handles graceful error callbacks for ephemeral file losses.
-- **`submissionController.ts`:** Manages student quiz submissions. Validates data, dispatches the async BullMQ grading job, and emits socket events for grading progress.
+- **`assignmentController.ts`:** Orchestrates new assessment creation. Inserts preliminary documents into MongoDB, dispatches BullMQ background generation jobs, and handles dynamic PDF `/download` fallbacks that regenerate ephemeral files on the fly. Also handles manual assignment updates and regeneration.
+- **`libraryController.ts`:** Manages the context library via `multer` for raw file uploads (PDF/TXT/DOCX). Implements graceful error callbacks for ephemeral file losses on cloud deployments.
+- **`submissionController.ts`:** Manages student quiz submissions. Validates answer payloads, dispatches async BullMQ AI grading jobs, and calculates final scores dynamically.
+- **`toolkitController.ts`:** Powers the AI Teacher's Toolkit APIs. Manages targeted Gemini API inference for generating lesson plans, compiling question banks, and enhancing teacher feedback remarks natively.
+- **`dashboardController.ts`:** Manages the home page analytics (fetching stats) and the CRUD operations for the teacher's persistent To-Do list.
+- **`groupController.ts`:** Handles creation and tracking of student groups.
 
 ## File Storage (Multer & PDFKit)
 - The backend utilizes a local `/uploads` directory natively.

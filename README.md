@@ -88,20 +88,53 @@ The system employs a decoupled, asynchronous processing pattern to guarantee rel
 
 The backend REST API is structurally modularized. Below are the core endpoints:
 
-### Assignments API (`/api/assignments`)
+### 📝 Assignments API (`/api/assignments`)
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `POST` | `/` | Creates a new assignment and dispatches the BullMQ generation job. |
 | `GET` | `/` | Retrieves a list of all assignments. |
 | `GET` | `/:id` | Fetches a specific assignment and its full JSON structure. |
-| `GET` | `/:id/download` | **[Fallback resilient]** Streams the generated PDF. Regenerates on-the-fly if wiped. |
+| `POST` | `/:id/regenerate` | Re-runs the Gemini AI generation for an existing assignment. |
+| `PUT` | `/:id` | Manually updates/edits assignment question data. |
+| `GET` | `/:id/download` | **[Fallback resilient]** Streams generated PDF. Regenerates on-the-fly if wiped. |
 | `DELETE` | `/:id` | Deletes the assignment and unlinks physical disk files. |
 
-### Submissions API (`/api/submissions`)
+### 📚 Library API (`/api/library`)
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `POST` | `/submit` | Accepts student quiz answers and saves responses. |
+| `GET` | `/` | Lists all uploaded syllabus/textbook context files. |
+| `POST` | `/upload` | Multipart/form-data upload using `multer` (PDF/TXT/DOCX). |
+| `GET` | `/:id/download` | Secure streaming of library documents with graceful fallbacks. |
+| `DELETE` | `/:id` | Deletes a context file from the DB and ephemeral disk. |
+
+### 🎓 Submissions API (`/api/submissions`)
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/submit` | Accepts student quiz answers and saves responses/auto-grades. |
 | `GET` | `/assignment/:id` | Fetches all submissions/results for a specific assignment. |
+
+### 🛠️ Toolkit API (`/api/toolkit`)
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/lesson-plan` | Generates a structured lesson schedule via AI. |
+| `POST` | `/question-bank` | Synthesizes standalone exam questions via AI. |
+| `POST` | `/feedback` | Expands draft remarks into professional teacher feedback. |
+
+### 📊 Dashboard API (`/api/dashboard`)
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/stats` | Fetches global statistics for the home page. |
+| `GET` | `/tasks` | Retrieves the teacher's to-do checklist. |
+| `POST` | `/tasks` | Creates a new to-do task. |
+| `PUT` | `/tasks/:id/toggle` | Toggles the completion state of a task. |
+| `DELETE`| `/tasks/:id` | Deletes a task. |
+
+### 👥 Groups API (`/api/groups`)
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/` | Retrieves all student groups. |
+| `POST` | `/` | Creates a new student group. |
+| `DELETE` | `/:id` | Deletes a specific group. |
 
 ---
 
