@@ -1,17 +1,28 @@
 <div align="center">
-  <h1>VedaAI – AI Assessment Creator</h1>
-  <p><strong>Full Stack Engineering Assignment</strong></p>
+  <br />
+  <h1>✨ VedaAI – AI Assessment Creator</h1>
+  <p><strong>Next-Generation EdTech Platform | Full Stack Engineering Assignment</strong></p>
   
   <a href="https://vedaai-5ro9.onrender.com/"><strong>🔗 View Live Application</strong></a>
+  
+  <br /><br />
+  
+  <img src="https://img.shields.io/badge/Next.js_14-black?style=for-the-badge&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" />
+  
+  <br /><br />
 </div>
 
 ---
 
 ## 📌 Overview
 
-**VedaAI** is a robust, production-ready AI Assessment Creator built to fulfill the rigorous requirements of a Full Stack Engineering Assignment. It enables educators to effortlessly generate fully structured, dynamic exam papers and interactive quizzes using advanced AI.
+**VedaAI** is a robust, production-ready AI Assessment Creator built to exceed the rigorous requirements of a Full Stack Engineering Assignment. It empowers educators to effortlessly generate fully structured, curriculum-aligned exam papers and interactive quizzes using advanced Generative AI.
 
-This project goes far beyond simple API wrapping by implementing a **decoupled worker architecture** (BullMQ/Redis) for high-latency AI inference, natively drawn **PDF generation**, and **WebSocket-driven real-time progress updates**.
+This project is engineered to scale. It moves far beyond standard API wrapping by implementing a **decoupled background worker architecture** (BullMQ & Redis) to securely manage high-latency AI inference. Combined with natively drawn **programmatic PDF generation** and **WebSocket-driven real-time UX updates**, VedaAI represents a true enterprise-grade solution.
 
 ---
 
