@@ -8,7 +8,8 @@ import {
   listAssignments,
   regenerateAssignment,
   updateAssignment,
-  deleteAssignment
+  deleteAssignment,
+  downloadAssignmentPdf
 } from '../controllers/assignmentController';
 
 const router = express.Router();
@@ -56,5 +57,6 @@ router.get('/:id', getAssignment);
 router.post('/:id/regenerate', regenerateAssignment);
 router.put('/:id', updateAssignment);
 router.delete('/:id', deleteAssignment);
+router.get('/:id/download', downloadAssignmentPdf);
 
 export default router;

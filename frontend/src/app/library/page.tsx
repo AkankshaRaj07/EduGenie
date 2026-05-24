@@ -30,6 +30,7 @@ export default function LibraryPage() {
 
   const [selectedCategory, setSelectedCategory] = useState('All Materials');
   const [searchQuery, setSearchQuery] = useState('');
+  const BACKEND_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api$/, '');
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [deleteConfirmDialog, setDeleteConfirmDialog] = useState<{isOpen: boolean, id: string, name: string}>({isOpen: false, id: '', name: ''});
@@ -251,7 +252,7 @@ export default function LibraryPage() {
                         <td className="px-6 py-6 text-right">
                           <div className="flex justify-end gap-3">
                             <a
-                              href={doc.fileUrl ? (doc.fileUrl.startsWith('http') ? doc.fileUrl : `http://localhost:5000${doc.fileUrl}`) : '#'}
+                              href={doc.fileUrl ? (doc.fileUrl.startsWith('http') ? doc.fileUrl : `${BACKEND_BASE}${doc.fileUrl}`) : '#'}
                               target="_blank"
                               rel="noreferrer"
                               className="p-1.5 rounded-lg text-slate-400 hover:text-brand-dark dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"

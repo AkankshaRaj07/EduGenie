@@ -5,6 +5,7 @@ import Assignment from '../models/Assignment';
 import { questionQueue, pdfQueue } from '../queues/generationQueue';
 import { emitJobStatus } from '../services/websocket';
 import { asyncHandler } from '../utils/asyncHandler';
+import { generateAssignmentPDF } from '../services/pdfGenerator';
 
 /**
  * Create a new assignment and queue it for AI generation
@@ -195,4 +196,29 @@ export const deleteAssignment = asyncHandler(async (req: Request, res: Response)
     await Assignment.findByIdAndDelete(id);
     console.log(`[API] Deleted assignment ${id}`);
     res.json({ message: 'Assignment deleted successfully.' });
+});
+
+/**
+ * Downloads the PDF file. If missing (e.g. ephemeral disk wiped on Render), regenerates it on the fly.
+ */
+export const downloadAssignmentPdf = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const assignment = await Assignment.findById(id);
+    if (!assignment) {
+      return res.status(404).json({ error: 'Assignment not found.' });
+    }
+
+    let pdfPath = assignment.pdfUrl ? path.join(__dirname, '../../', assignment.pdfUrl) : '';
+    
+    // Check if file physically exists. If not, generate it synchronously.
+    if (!pdfPath || !fs.existsSync(pdfPath)) {
+       console.log(`[API] PDF missing for ${id}. Regenerating on the fly...`);
+       const newPdfUrl = await generateAssignmentPDF(assignment);
+       assignment.pdfUrl = newPdfUrl;
+       await assignment.save();
+       pdfPath = path.join(__dirname, '../../', newPdfUrl);
+    }
+    
+    const safeTitle = assignment.title ? assignment.title.replace(/[^a-zA-Z0-9-]/g, '_') : id;
+    res.download(pdfPath, `VedaAI_Assignment_${safeTitle}.pdf`);
 });

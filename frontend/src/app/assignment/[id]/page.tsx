@@ -164,7 +164,9 @@ export default function AssignmentOutputPage() {
   };
 
   const handleDownload = () => {
-    if (activeAssignment?.pdfUrl) {
+    if (activeAssignment?._id) {
+      window.open(`${BACKEND_BASE}/assignments/${activeAssignment._id}/download`, '_blank');
+    } else if (activeAssignment?.pdfUrl) {
       window.open(`${BACKEND_BASE}${activeAssignment.pdfUrl}`, '_blank');
     } else {
       setAlertModal({ title: 'Not Ready', message: 'PDF is not available yet. It may still be generating.' });
