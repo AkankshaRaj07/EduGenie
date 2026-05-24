@@ -10,11 +10,11 @@ import { asyncHandler } from '../utils/asyncHandler';
  * Create a new assignment and queue it for AI generation
  */
 export const createAssignment = asyncHandler(async (req: Request, res: Response) => {
-    const { title, dueDate, questionTypes, numQuestions, totalMarks, additionalInstructions } = req.body;
+    const { title, subject, classLevel, schoolName, dueDate, questionTypes, numQuestions, totalMarks, additionalInstructions } = req.body;
 
     // Simple validations
-    if (!title || !dueDate || !questionTypes || !numQuestions || !totalMarks) {
-      return res.status(400).json({ error: 'All fields (title, dueDate, questionTypes, numQuestions, totalMarks) are required.' });
+    if (!title || !subject || !classLevel || !dueDate || !questionTypes || !numQuestions || !totalMarks) {
+      return res.status(400).json({ error: 'All fields (title, subject, classLevel, dueDate, questionTypes, numQuestions, totalMarks) are required.' });
     }
 
     const parsedNumQuestions = parseInt(numQuestions);
@@ -46,6 +46,9 @@ export const createAssignment = asyncHandler(async (req: Request, res: Response)
     // Save initial document in DB
     const assignment = new Assignment({
       title,
+      subject,
+      classLevel,
+      schoolName,
       dueDate: new Date(dueDate),
       questionTypes: parsedQuestionTypes,
       numQuestions: parsedNumQuestions,

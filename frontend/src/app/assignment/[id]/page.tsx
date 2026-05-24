@@ -562,15 +562,15 @@ export default function AssignmentOutputPage() {
           <div className="bg-white rounded-[32px] p-8 sm:p-12 sm:px-16 shadow-lg mb-10 text-[#1A1A1A] w-full border border-slate-100">
             <div className="text-center mb-10">
               <h1 className="text-2xl sm:text-[26px] font-bold mb-1 tracking-tight">
-                {schoolName}, {schoolLocation}
+                {schoolName || 'Your School Name'}, {schoolLocation || 'City'}
               </h1>
-              <h2 className="text-[17px] font-semibold mb-1">Subject: English</h2>
-              <h3 className="text-[15px] font-semibold">Class: 5th</h3>
+              <h2 className="text-[17px] font-semibold mb-1">Subject: {activeAssignment.subject || 'N/A'}</h2>
+              <h3 className="text-[15px] font-semibold">Class: {activeAssignment.classLevel || 'N/A'}</h3>
             </div>
 
             <div className="flex justify-between items-center text-[13px] font-semibold mb-8">
               <span>Time Allowed: 45 minutes</span>
-              <span>Maximum Marks: 20</span>
+              <span>Maximum Marks: {activeAssignment.totalMarks || 20}</span>
             </div>
 
             <p className="text-[13px] font-bold mb-8">
@@ -580,7 +580,7 @@ export default function AssignmentOutputPage() {
             <div className="flex flex-col gap-1.5 text-[13px] font-semibold mb-12">
               <div>Name: ______________________</div>
               <div>Roll Number: ________________</div>
-              <div>Class: 5th Section: __________</div>
+              <div>Class: {activeAssignment.classLevel || '________'} Section: __________</div>
             </div>
 
             {/* Dynamic Mapping for Sections */}

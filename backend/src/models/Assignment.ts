@@ -16,6 +16,9 @@ export interface ISection {
 
 export interface IAssignment extends Document {
   title: string;
+  subject: string;
+  classLevel: string;
+  schoolName?: string;
   dueDate: Date;
   questionTypes: string[];
   numQuestions: number;
@@ -48,6 +51,9 @@ const SectionSchema = new Schema<ISection>({
 const AssignmentSchema = new Schema<IAssignment>(
   {
     title: { type: String, required: true },
+    subject: { type: String, required: true },
+    classLevel: { type: String, required: true },
+    schoolName: { type: String },
     dueDate: { type: Date, required: true },
     questionTypes: [{ type: String, required: true }],
     numQuestions: { type: Number, required: true },

@@ -5,7 +5,7 @@ export const QuestionSchema = z.object({
   marks: z.number().int().positive(),
   difficulty: z.enum(['Easy', 'Moderate', 'Hard']),
   options: z.array(z.string()).optional(),
-  correctAnswer: z.string().optional()
+  correctAnswer: z.string()
 });
 
 export const SectionSchema = z.object({

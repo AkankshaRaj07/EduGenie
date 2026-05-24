@@ -33,8 +33,22 @@ export const generateAssignmentPDF = (assignment: IAssignment): Promise<string> 
       doc.pipe(writeStream);
 
       // 1. Exam Header / Logo
-      doc.fontSize(22).font('Helvetica-Bold').fillColor('#1e293b').text(cleanText(assignment.title).toUpperCase(), { align: 'center' });
+      if (assignment.schoolName) {
+        doc.fontSize(22).font('Helvetica-Bold').fillColor('#1e293b').text(cleanText(assignment.schoolName).toUpperCase(), { align: 'center' });
+        doc.moveDown(0.3);
+        doc.fontSize(16).font('Helvetica-Bold').fillColor('#475569').text(cleanText(assignment.title).toUpperCase(), { align: 'center' });
+      } else {
+        doc.fontSize(22).font('Helvetica-Bold').fillColor('#1e293b').text(cleanText(assignment.title).toUpperCase(), { align: 'center' });
+      }
       doc.moveDown(0.3);
+
+      if (assignment.subject || assignment.classLevel) {
+        const subtext = [];
+        if (assignment.classLevel) subtext.push(`Class: ${assignment.classLevel}`);
+        if (assignment.subject) subtext.push(`Subject: ${assignment.subject}`);
+        doc.fontSize(12).font('Helvetica-Bold').fillColor('#334155').text(cleanText(subtext.join('   |   ')), { align: 'center' });
+        doc.moveDown(0.5);
+      }
 
       // 2. Exam Sub-Header (Marks & Time/Date)
       const formattedDate = new Date(assignment.dueDate).toLocaleDateString('en-US', {

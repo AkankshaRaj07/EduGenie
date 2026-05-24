@@ -41,7 +41,14 @@ EXAM PARAMETERS:
 - Target Number of Questions: ${params.numQuestions}
 - Target Total Marks: ${params.totalMarks}
 - Additional Instructions/Focus Topics: "${params.additionalInstructions || 'None'}"
-${params.fileContent ? `- Reference Syllabus/Study Material content:\n"""\n${params.fileContent}\n"""` : ''}
+${params.fileContent ? `
+CRITICAL GROUNDING REQUIREMENT:
+You MUST generate ALL questions strictly using ONLY the information provided in the Reference Syllabus/Study Material content below. Do NOT use outside knowledge or hallucinate topics. If the provided text is short, create questions only based on what is in the text.
+
+- Reference Syllabus/Study Material content:
+"""
+${params.fileContent}
+"""` : ''}
 
 INSTRUCTIONS FOR QUESTION BALANCING:
 1. Organize the questions into logical sections (e.g. "Section A: Multiple Choice Questions", "Section B: Short Answer Questions").
@@ -91,7 +98,7 @@ INSTRUCTIONS FOR QUESTION BALANCING:
                     description: 'The correct option (MCQs) or detailed solution/rubric (All other types)'
                   }
                 },
-                required: ['text', 'difficulty', 'marks']
+                required: ['text', 'difficulty', 'marks', 'correctAnswer']
               }
             }
           },
