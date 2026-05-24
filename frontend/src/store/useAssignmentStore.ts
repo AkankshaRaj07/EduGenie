@@ -215,6 +215,22 @@ interface AssignmentState {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+if (typeof window !== 'undefined') {
+  try {
+    const oldSettings = localStorage.getItem('edugenie-settings');
+    const newSettings = localStorage.getItem('vedaai-settings');
+    
+    // If old settings exist, and new settings are either missing or still at default
+    if (oldSettings) {
+      if (!newSettings || newSettings.includes('"userName":"John Doe"')) {
+        localStorage.setItem('vedaai-settings', oldSettings);
+      }
+    }
+  } catch (e) {
+    console.error('Failed to migrate old settings', e);
+  }
+}
+
 export const useAssignmentStore = create<AssignmentState>()(
   persist(
     (set, get) => ({
