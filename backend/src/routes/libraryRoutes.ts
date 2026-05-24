@@ -2,10 +2,10 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { 
   listLibraryItems, 
   uploadLibraryItem, 
-  deleteLibraryItem 
+  deleteLibraryItem,
+  downloadLibraryItem
 } from '../controllers/libraryController';
 
 const router = express.Router();
@@ -48,5 +48,6 @@ const upload = multer({
 router.get('/', listLibraryItems);
 router.post('/upload', upload.single('file'), uploadLibraryItem);
 router.delete('/:id', deleteLibraryItem);
+router.get('/:id/download', downloadLibraryItem);
 
 export default router;
