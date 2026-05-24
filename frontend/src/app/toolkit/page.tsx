@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   BookOpen, 
@@ -18,6 +18,11 @@ import {
 } from 'lucide-react';
 import { useAssignmentStore } from '../../store/useAssignmentStore';
 import { useRouter, useSearchParams } from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
 export default function ToolkitPage() {
   const { generateToolkitContent, setToastMessage } = useAssignmentStore();
@@ -55,6 +60,12 @@ export default function ToolkitPage() {
   const [qbTopic, setQbTopic] = useState('Thermodynamics');
   const [qbCount, setQbCount] = useState('3');
   const [qbDifficulty, setQbDifficulty] = useState('Medium');
+
+  // Clear output when switching tools
+  useEffect(() => {
+    setGeneratedOutput('');
+    setIsGenerating(false);
+  }, [activeTool]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(generatedOutput);
@@ -127,7 +138,7 @@ export default function ToolkitPage() {
       const output = await generateToolkitContent('feedback', {
         studentName: fbName,
         tone: fbTone,
-        draft: fbDraft
+        draftObservations: fbDraft
       });
       clearInterval(stepInterval);
       setGeneratedOutput(output);
@@ -184,31 +195,40 @@ export default function ToolkitPage() {
   };
 
   return (
-    <div className="flex-1 pb-8 w-full flex flex-col font-sans animate-fadeIn">
+    <div className="flex-1 pb-8 w-full flex flex-col font-sans animate-fadeIn transition-colors">
       
       {!activeTool ? (
         /* ==================== TOOLKIT HOME SELECTION MENU ==================== */
         <div className="flex-1 flex flex-col">
-          <p className="text-slate-500 text-sm font-semibold mb-8">Access AI-powered modules to plan lessons, compile questions, and expand student feedback logs.</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 ml-[9px]">
+            <div>
+              <h1 className="text-3xl font-black font-outfit text-brand-dark dark:text-white tracking-tight leading-none transition-colors">
+                <span className="text-[#E05058]">AI</span> Teacher's Toolkit
+              </h1>
+              <p className="mt-2 text-slate-500 dark:text-slate-400 text-sm font-semibold transition-colors">
+                Access AI-powered modules to plan lessons, compile questions, and expand student feedback logs.
+              </p>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Card 1: Lesson Plan */}
             <div 
               onClick={() => setActiveTool('lesson_plan')}
-              className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition cursor-pointer flex flex-col justify-between group min-h-[220px]"
+              className="bg-white dark:bg-[#111111] border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-colors cursor-pointer flex flex-col justify-between group min-h-[220px]"
             >
               <div>
-                <div className="p-3 bg-rose-50 border border-[#FECDD3] text-[#E05058] rounded-2xl w-fit mb-5">
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-[#FECDD3] dark:border-rose-900/50 text-[#E05058] rounded-2xl w-fit mb-5 transition-colors">
                   <Compass className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-black font-outfit text-brand-dark mt-1 group-hover:text-[#E05058] transition">
+                <h3 className="text-lg font-black font-outfit text-brand-dark dark:text-white mt-1 group-hover:text-[#E05058] transition-colors">
                   Lesson Plan Generator
                 </h3>
-                <p className="text-xs text-slate-500 mt-1.5 font-semibold leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 font-semibold leading-relaxed transition-colors">
                   Generate structured lesson schedules, learning objectives, activities, and outline timelines aligned to syllabus.
                 </p>
               </div>
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-5 text-[10px] font-black text-[#E05058] uppercase tracking-wider">
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between mt-5 text-[10px] font-black text-[#E05058] uppercase tracking-wider transition-colors">
                 <span>Configure & Generate</span>
                 <Sparkles className="w-4 h-4" />
               </div>
@@ -217,20 +237,20 @@ export default function ToolkitPage() {
             {/* Card 2: Question Bank */}
             <div 
               onClick={() => setActiveTool('question_bank')}
-              className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition cursor-pointer flex flex-col justify-between group min-h-[220px]"
+              className="bg-white dark:bg-[#111111] border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-colors cursor-pointer flex flex-col justify-between group min-h-[220px]"
             >
               <div>
-                <div className="p-3 bg-amber-50 border border-amber-100 text-amber-600 rounded-2xl w-fit mb-5">
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50 text-amber-600 dark:text-amber-500 rounded-2xl w-fit mb-5 transition-colors">
                   <HelpCircle className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-black font-outfit text-brand-dark mt-1 group-hover:text-[#E05058] transition">
+                <h3 className="text-lg font-black font-outfit text-brand-dark dark:text-white mt-1 group-hover:text-[#E05058] transition-colors">
                   Question Bank Builder
                 </h3>
-                <p className="text-xs text-slate-500 mt-1.5 font-semibold leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 font-semibold leading-relaxed transition-colors">
                   Synthesize exam-style questions complete with grading schemes and rubrics based on selected topics.
                 </p>
               </div>
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-5 text-[10px] font-black text-[#E05058] uppercase tracking-wider">
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between mt-5 text-[10px] font-black text-[#E05058] uppercase tracking-wider transition-colors">
                 <span>Configure & Generate</span>
                 <Sparkles className="w-4 h-4" />
               </div>
@@ -239,20 +259,20 @@ export default function ToolkitPage() {
             {/* Card 3: Feedback Enhancer */}
             <div 
               onClick={() => setActiveTool('feedback')}
-              className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition cursor-pointer flex flex-col justify-between group min-h-[220px]"
+              className="bg-white dark:bg-[#111111] border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-colors cursor-pointer flex flex-col justify-between group min-h-[220px]"
             >
               <div>
-                <div className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-2xl w-fit mb-5">
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-2xl w-fit mb-5 transition-colors">
                   <MessageSquare className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-black font-outfit text-brand-dark mt-1 group-hover:text-[#E05058] transition">
+                <h3 className="text-lg font-black font-outfit text-brand-dark dark:text-white mt-1 group-hover:text-[#E05058] transition-colors">
                   Feedback Enhancer
                 </h3>
-                <p className="text-xs text-slate-500 mt-1.5 font-semibold leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 font-semibold leading-relaxed transition-colors">
                   Expand basic teacher drafts into comprehensive, encouraging, and academically helpful student review comments.
                 </p>
               </div>
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-5 text-[10px] font-black text-[#E05058] uppercase tracking-wider">
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between mt-5 text-[10px] font-black text-[#E05058] uppercase tracking-wider transition-colors">
                 <span>Configure & Enhance</span>
                 <Sparkles className="w-4 h-4" />
               </div>
@@ -266,40 +286,40 @@ export default function ToolkitPage() {
           {/* Config Panel (Left 5 cols) */}
           <div className="lg:col-span-5 w-full space-y-6">
 
-            <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm">
+            <div className="bg-white dark:bg-[#111111] border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm transition-colors">
               {activeTool === 'lesson_plan' && (
                 <form onSubmit={handleGenerateLessonPlan} className="space-y-4">
                   <div className="mb-4">
-                    <h3 className="text-lg font-black font-outfit text-brand-dark">Lesson Planner</h3>
-                    <p className="text-[10px] text-slate-400 font-bold mt-0.5">Customize parameters for your lesson schedule</p>
+                    <h3 className="text-lg font-black font-outfit text-brand-dark dark:text-white transition-colors">Lesson Planner</h3>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold mt-0.5 transition-colors">Customize parameters for your lesson schedule</p>
                   </div>
                   
                   <div>
-                    <label className="block text-[10px] font-black text-brand-dark uppercase tracking-wider mb-1.5">Grade Level</label>
-                    <input type="text" value={lpGrade} onChange={e => setLpGrade(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-primary" />
+                    <label className="block text-[10px] font-black text-brand-dark dark:text-slate-300 uppercase tracking-wider mb-1.5 transition-colors">Grade Level</label>
+                    <input type="text" value={lpGrade} onChange={e => setLpGrade(e.target.value)} className="w-full bg-transparent px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-brand-primary dark:focus:border-[#E05058] transition-colors" />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-brand-dark uppercase tracking-wider mb-1.5">Subject</label>
-                    <input type="text" value={lpSubject} onChange={e => setLpSubject(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-primary" />
+                    <label className="block text-[10px] font-black text-brand-dark dark:text-slate-300 uppercase tracking-wider mb-1.5 transition-colors">Subject</label>
+                    <input type="text" value={lpSubject} onChange={e => setLpSubject(e.target.value)} className="w-full bg-transparent px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-brand-primary dark:focus:border-[#E05058] transition-colors" />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-brand-dark uppercase tracking-wider mb-1.5">Lesson Topic</label>
-                    <input type="text" value={lpTopic} onChange={e => setLpTopic(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-primary" />
+                    <label className="block text-[10px] font-black text-brand-dark dark:text-slate-300 uppercase tracking-wider mb-1.5 transition-colors">Lesson Topic</label>
+                    <input type="text" value={lpTopic} onChange={e => setLpTopic(e.target.value)} className="w-full bg-transparent px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-brand-primary dark:focus:border-[#E05058] transition-colors" />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-brand-dark uppercase tracking-wider mb-1.5">Learning Objectives</label>
-                    <textarea rows={3} value={lpObjectives} onChange={e => setLpObjectives(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-primary resize-none" />
+                    <label className="block text-[10px] font-black text-brand-dark dark:text-slate-300 uppercase tracking-wider mb-1.5 transition-colors">Learning Objectives</label>
+                    <textarea rows={3} value={lpObjectives} onChange={e => setLpObjectives(e.target.value)} className="w-full bg-transparent px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-brand-primary dark:focus:border-[#E05058] resize-none transition-colors" />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-brand-dark uppercase tracking-wider mb-1.5">Duration (Minutes)</label>
-                    <input type="number" value={lpDuration} onChange={e => setLpDuration(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-primary" />
+                    <label className="block text-[10px] font-black text-brand-dark dark:text-slate-300 uppercase tracking-wider mb-1.5 transition-colors">Duration (Minutes)</label>
+                    <input type="number" value={lpDuration} onChange={e => setLpDuration(e.target.value)} className="w-full bg-transparent px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-brand-primary dark:focus:border-[#E05058] transition-colors" />
                   </div>
 
-                  <button type="submit" disabled={isGenerating} className="w-full py-3 bg-[#1A1A1A] hover:bg-black disabled:bg-slate-400 text-white font-extrabold text-xs rounded-full flex items-center justify-center gap-2 transition uppercase tracking-wider cursor-pointer">
+                  <button type="submit" disabled={isGenerating} className="w-full py-3 bg-[#1A1A1A] dark:bg-white disabled:bg-slate-400 dark:disabled:bg-slate-600 text-white dark:text-black hover:bg-black dark:hover:bg-slate-200 font-extrabold text-xs rounded-full flex items-center justify-center gap-2 transition uppercase tracking-wider cursor-pointer">
                     {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-[#E05058] fill-[#E05058]" />}
                     Generate Lesson Plan
                   </button>
@@ -309,18 +329,18 @@ export default function ToolkitPage() {
               {activeTool === 'feedback' && (
                 <form onSubmit={handleGenerateFeedback} className="space-y-4">
                   <div className="mb-4">
-                    <h3 className="text-lg font-black font-outfit text-brand-dark">Feedback Enhancer</h3>
-                    <p className="text-[10px] text-slate-400 font-bold mt-0.5">Elevate your brief evaluation notes</p>
+                    <h3 className="text-lg font-black font-outfit text-brand-dark dark:text-white transition-colors">Feedback Enhancer</h3>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold mt-0.5 transition-colors">Elevate your brief evaluation notes</p>
                   </div>
                   
                   <div>
-                    <label className="block text-[10px] font-black text-brand-dark uppercase tracking-wider mb-1.5">Student Name</label>
-                    <input type="text" value={fbName} onChange={e => setFbName(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-primary" />
+                    <label className="block text-[10px] font-black text-brand-dark dark:text-slate-300 uppercase tracking-wider mb-1.5 transition-colors">Student Name</label>
+                    <input type="text" value={fbName} onChange={e => setFbName(e.target.value)} className="w-full bg-transparent px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-brand-primary dark:focus:border-[#E05058] transition-colors" />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-brand-dark uppercase tracking-wider mb-1.5">Desired Tone</label>
-                    <select value={fbTone} onChange={e => setFbTone(e.target.value)} className="w-full bg-white px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-primary">
+                    <label className="block text-[10px] font-black text-brand-dark dark:text-slate-300 uppercase tracking-wider mb-1.5 transition-colors">Desired Tone</label>
+                    <select value={fbTone} onChange={e => setFbTone(e.target.value)} className="w-full bg-white dark:bg-slate-800 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-brand-primary dark:focus:border-[#E05058] transition-colors">
                       <option value="Encouraging">Encouraging & Warm</option>
                       <option value="Constructive">Constructive & Growth</option>
                       <option value="Academic">Direct & Academic</option>
@@ -329,11 +349,11 @@ export default function ToolkitPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-brand-dark uppercase tracking-wider mb-1.5">Draft Observations / Notes</label>
-                    <textarea rows={4} value={fbDraft} onChange={e => setFbDraft(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-primary resize-none" />
+                    <label className="block text-[10px] font-black text-brand-dark dark:text-slate-300 uppercase tracking-wider mb-1.5 transition-colors">Draft Observations / Notes</label>
+                    <textarea rows={4} value={fbDraft} onChange={e => setFbDraft(e.target.value)} className="w-full bg-transparent px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-brand-primary dark:focus:border-[#E05058] resize-none transition-colors" />
                   </div>
 
-                  <button type="submit" disabled={isGenerating} className="w-full py-3 bg-[#1A1A1A] hover:bg-black disabled:bg-slate-400 text-white font-extrabold text-xs rounded-full flex items-center justify-center gap-2 transition uppercase tracking-wider cursor-pointer">
+                  <button type="submit" disabled={isGenerating} className="w-full py-3 bg-[#1A1A1A] dark:bg-white disabled:bg-slate-400 dark:disabled:bg-slate-600 text-white dark:text-black hover:bg-black dark:hover:bg-slate-200 font-extrabold text-xs rounded-full flex items-center justify-center gap-2 transition uppercase tracking-wider cursor-pointer">
                     {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-[#E05058] fill-[#E05058]" />}
                     Enhance Remarks
                   </button>
@@ -343,18 +363,18 @@ export default function ToolkitPage() {
               {activeTool === 'question_bank' && (
                 <form onSubmit={handleGenerateQuestionBank} className="space-y-4">
                   <div className="mb-4">
-                    <h3 className="text-lg font-black font-outfit text-brand-dark">Question Builder</h3>
-                    <p className="text-[10px] text-slate-400 font-bold mt-0.5">Synthesize custom assessment questions</p>
+                    <h3 className="text-lg font-black font-outfit text-brand-dark dark:text-white transition-colors">Question Builder</h3>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold mt-0.5 transition-colors">Synthesize custom assessment questions</p>
                   </div>
                   
                   <div>
-                    <label className="block text-[10px] font-black text-brand-dark uppercase tracking-wider mb-1.5">Topic / Syllabus Section</label>
-                    <input type="text" value={qbTopic} onChange={e => setQbTopic(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-primary" />
+                    <label className="block text-[10px] font-black text-brand-dark dark:text-slate-300 uppercase tracking-wider mb-1.5 transition-colors">Topic / Syllabus Section</label>
+                    <input type="text" value={qbTopic} onChange={e => setQbTopic(e.target.value)} className="w-full bg-transparent px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-brand-primary dark:focus:border-[#E05058] transition-colors" />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-brand-dark uppercase tracking-wider mb-1.5">Question Count</label>
-                    <select value={qbCount} onChange={e => setQbCount(e.target.value)} className="w-full bg-white px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-primary">
+                    <label className="block text-[10px] font-black text-brand-dark dark:text-slate-300 uppercase tracking-wider mb-1.5 transition-colors">Question Count</label>
+                    <select value={qbCount} onChange={e => setQbCount(e.target.value)} className="w-full bg-white dark:bg-slate-800 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-brand-primary dark:focus:border-[#E05058] transition-colors">
                       <option value="3">3 Questions</option>
                       <option value="5">5 Questions</option>
                       <option value="10">10 Questions</option>
@@ -362,15 +382,15 @@ export default function ToolkitPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-brand-dark uppercase tracking-wider mb-1.5">Difficulty Level</label>
-                    <select value={qbDifficulty} onChange={e => setQbDifficulty(e.target.value)} className="w-full bg-white px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-primary">
+                    <label className="block text-[10px] font-black text-brand-dark dark:text-slate-300 uppercase tracking-wider mb-1.5 transition-colors">Difficulty Level</label>
+                    <select value={qbDifficulty} onChange={e => setQbDifficulty(e.target.value)} className="w-full bg-white dark:bg-slate-800 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-brand-primary dark:focus:border-[#E05058] transition-colors">
                       <option value="Easy">Easy / Conceptual</option>
                       <option value="Medium">Medium / Application</option>
                       <option value="Hard">Hard / Critical Thinking</option>
                     </select>
                   </div>
 
-                  <button type="submit" disabled={isGenerating} className="w-full py-3 bg-[#1A1A1A] hover:bg-black disabled:bg-slate-400 text-white font-extrabold text-xs rounded-full flex items-center justify-center gap-2 transition uppercase tracking-wider cursor-pointer">
+                  <button type="submit" disabled={isGenerating} className="w-full py-3 bg-[#1A1A1A] dark:bg-white disabled:bg-slate-400 dark:disabled:bg-slate-600 text-white dark:text-black hover:bg-black dark:hover:bg-slate-200 font-extrabold text-xs rounded-full flex items-center justify-center gap-2 transition uppercase tracking-wider cursor-pointer">
                     {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-[#E05058] fill-[#E05058]" />}
                     Build Question Bank
                   </button>
@@ -381,39 +401,39 @@ export default function ToolkitPage() {
 
           {/* AI Output Preview Panel (Right 7 cols) */}
           <div className="lg:col-span-7 w-full">
-            <div className="bg-white border border-slate-200/80 rounded-3xl shadow-sm p-6 min-h-[460px] flex flex-col justify-between relative overflow-hidden">
+            <div className="bg-white dark:bg-[#111111] border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-sm p-6 min-h-[460px] flex flex-col justify-between relative overflow-hidden transition-colors">
               
               {/* Overlay simulation spinner during generation */}
               {isGenerating && (
-                <div className="absolute inset-0 bg-white/90 backdrop-blur-xs z-20 flex flex-col items-center justify-center py-20 px-6 text-center animate-fadeIn">
+                <div className="absolute inset-0 bg-white/90 dark:bg-[#111111]/90 backdrop-blur-xs z-20 flex flex-col items-center justify-center py-20 px-6 text-center animate-fadeIn transition-colors">
                   <div className="relative w-16 h-16 flex items-center justify-center mb-6">
                     <Loader2 className="w-12 h-12 text-[#E05058] animate-spin absolute" />
                     <Sparkles className="w-5 h-5 text-[#E05058] fill-[#E05058]" />
                   </div>
-                  <h4 className="text-base font-black font-outfit text-brand-dark">VedaAI Synthesis Engine</h4>
-                  <p className="text-xs text-slate-500 font-bold mt-2 animate-pulse">{currentStepText}</p>
+                  <h4 className="text-base font-black font-outfit text-brand-dark dark:text-white transition-colors">VedaAI Synthesis Engine</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-bold mt-2 animate-pulse transition-colors">{currentStepText}</p>
                 </div>
               )}
 
               {/* Header section of preview */}
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-4 transition-colors">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#E05058] animate-pulse"></span>
-                  <span className="text-xs font-black text-brand-dark uppercase tracking-wider">AI Live Output Preview</span>
+                  <span className="text-xs font-black text-brand-dark dark:text-white uppercase tracking-wider transition-colors">AI Live Output Preview</span>
                 </div>
                 {generatedOutput && (
                   <button
                     onClick={handleCopy}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-extrabold text-[10px] rounded-full uppercase tracking-wider transition cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-[10px] rounded-full uppercase tracking-wider transition cursor-pointer"
                   >
                     {copied ? (
                       <>
-                        <ClipboardCheck className="w-3.5 h-3.5 text-emerald-600" />
-                        <span className="text-emerald-700">Copied</span>
+                        <ClipboardCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-emerald-700 dark:text-emerald-400">Copied</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3.5 h-3.5 text-slate-400" />
+                        <Copy className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                         <span>Copy Code</span>
                       </>
                     )}
@@ -424,22 +444,39 @@ export default function ToolkitPage() {
               {/* Main Content Area */}
               <div className="flex-1 flex flex-col justify-center">
                 {generatedOutput ? (
-                  <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/50 font-mono text-xs text-slate-800 overflow-y-auto max-h-[380px] whitespace-pre-wrap leading-relaxed select-text select-all">
-                    {generatedOutput}
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-5 border border-slate-200/50 dark:border-slate-700 text-sm text-slate-800 dark:text-slate-200 overflow-y-auto max-h-[460px] leading-relaxed select-text shadow-inner transition-colors">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm, remarkMath]}
+                      rehypePlugins={[rehypeKatex]}
+                      components={{
+                        h1: ({node, ...props}) => <h1 className="text-xl font-black font-outfit mt-4 mb-2 text-brand-dark dark:text-white" {...props} />,
+                        h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-3 mb-2 text-brand-dark dark:text-white" {...props} />,
+                        h3: ({node, ...props}) => <h3 className="text-base font-bold mt-2 mb-1 text-brand-dark dark:text-white" {...props} />,
+                        p: ({node, ...props}) => <p className="mb-3 text-[13px] leading-relaxed" {...props} />,
+                        ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-3 space-y-1.5 text-[13px]" {...props} />,
+                        ol: ({node, ...props}) => <ol className="list-decimal pl-5 mb-3 space-y-1.5 text-[13px]" {...props} />,
+                        li: ({node, ...props}) => <li className="" {...props} />,
+                        strong: ({node, ...props}) => <strong className="font-bold text-brand-dark dark:text-white" {...props} />,
+                        code: ({node, ...props}) => <code className="bg-slate-200 dark:bg-slate-700 text-[#E05058] px-1.5 py-0.5 rounded font-mono text-xs" {...props} />,
+                        pre: ({node, ...props}) => <pre className="bg-slate-800 text-white p-4 rounded-xl overflow-x-auto text-xs my-4" {...props} />,
+                      }}
+                    >
+                      {generatedOutput}
+                    </ReactMarkdown>
                   </div>
                 ) : (
                   <div className="text-center py-20">
-                    <div className="w-20 h-20 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                    <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300 dark:text-slate-600 transition-colors">
                       <FileText className="w-8 h-8" />
                     </div>
-                    <h5 className="text-sm font-black font-outfit text-slate-400">No output generated yet</h5>
-                    <p className="text-[11px] text-slate-400 max-w-xs mx-auto mt-1.5 font-semibold">Fill out the configuration parameters on the left and click generate to run the simulation.</p>
+                    <h5 className="text-sm font-black font-outfit text-slate-400 dark:text-slate-500 transition-colors">No output generated yet</h5>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 max-w-xs mx-auto mt-1.5 font-semibold transition-colors">Fill out the configuration parameters on the left and click generate to run the simulation.</p>
                   </div>
                 )}
               </div>
 
               {/* Helper Footer note */}
-              <div className="mt-4 pt-4 border-t border-slate-100 text-[10px] text-slate-400 font-bold flex items-center gap-1.5">
+              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 dark:text-slate-500 font-bold flex items-center gap-1.5 transition-colors">
                 <Sparkles className="w-3 h-3 text-[#E05058] fill-[#E05058]" />
                 <span>Generated content can be copied and grounded directly into custom templates.</span>
               </div>

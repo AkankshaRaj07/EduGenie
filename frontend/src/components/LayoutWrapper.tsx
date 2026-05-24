@@ -13,7 +13,11 @@ import {
   X,
   Plus,
   ArrowLeft,
-  Sparkles
+  Sparkles,
+  Sun,
+  Moon,
+  LogOut,
+  Settings
 } from 'lucide-react';
 import { useAssignmentStore } from '../store/useAssignmentStore';
 import Sidebar, { ApeAvatar } from './Sidebar';
@@ -26,7 +30,11 @@ export default function LayoutWrapper({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { sidebarOpen, setSidebarOpen, viewState, setViewState, toastMessage, setToastMessage } = useAssignmentStore();
+  const { sidebarOpen, setSidebarOpen, viewState, setViewState, toastMessage, setToastMessage, darkMode, setDarkMode, userName, userEmail, userAvatar } = useAssignmentStore();
+  
+  // Notifications State
+  const [showNotifications, setShowNotifications] = React.useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = React.useState(false);
 
   React.useEffect(() => {
     if (toastMessage) {
@@ -55,7 +63,7 @@ export default function LayoutWrapper({
   const isAssignmentOutput = pathname.startsWith('/assignment/');
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-[#CCCCCC] md:bg-brand-warm relative">
+    <div className="flex flex-col md:flex-row min-h-screen bg-[#CCCCCC] md:bg-brand-warm dark:md:bg-slate-950 transition-colors relative">
       {/* 1. Left Sidebar Navigation (Desktop only, drawer on mobile) */}
       <Sidebar />
 
@@ -64,7 +72,7 @@ export default function LayoutWrapper({
         
         {/* Unified persistent top header (No-print) */}
         <div className="w-full px-4 pt-4 md:px-4 md:pt-6 no-print mb-6">
-          <div className="bg-white rounded-[24px] px-4 md:px-6 py-2.5 flex items-center justify-between shadow-sm">
+          <div className="bg-white dark:bg-[#111111] rounded-[24px] px-4 md:px-6 py-2.5 flex items-center justify-between shadow-sm border border-transparent dark:border-slate-800 transition-colors">
             
             {/* Left Side: Dynamic back button, page title, or mobile logo */}
             <div className="flex items-center gap-3">
@@ -92,7 +100,7 @@ export default function LayoutWrapper({
                     </defs>
                   </svg>
                   <span
-                    className="font-bricolage text-[1.2rem] font-bold leading-none text-[#1A1A1A]"
+                    className="font-bricolage text-[1.2rem] font-bold leading-none text-[#1A1A1A] dark:text-white transition-colors"
                     style={{ letterSpacing: '-0.01em' }}
                   >
                     VedaAI
@@ -104,7 +112,7 @@ export default function LayoutWrapper({
               {isAssignmentOutput ? (
                 <button
                   onClick={() => { setViewState('list'); router.push('/'); }}
-                  className="hidden md:flex items-center gap-2 text-xs sm:text-[14px] text-[#A0A0A0] font-medium hover:text-slate-700 transition cursor-pointer"
+                  className="hidden md:flex items-center gap-2 text-xs sm:text-[14px] text-[#A0A0A0] font-medium hover:text-slate-700 dark:hover:text-slate-300 transition cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4 text-[#A0A0A0]" />
                   <Sparkles className="w-4 h-4 text-[#A0A0A0]" />
@@ -121,15 +129,17 @@ export default function LayoutWrapper({
                         setViewState('list');
                       } else if (pathname === '/toolkit' && searchParams.get('tool')) {
                         router.push('/toolkit');
+                      } else {
+                        router.back();
                       }
                     }}
-                    className="w-10 h-10 rounded-full bg-white text-slate-700 flex items-center justify-center hover:bg-slate-50 transition cursor-pointer shrink-0"
+                    className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 transition relative cursor-pointer"
                   >
-                    <ArrowLeft className="w-[18px] h-[18px] stroke-[1.5]" />
+                    <ArrowLeft className="w-[18px] h-[18px] stroke-[1.5] text-slate-600 dark:text-slate-300 transition-colors" />
                   </button>
                   <div className="flex items-center gap-2.5 text-slate-400 ml-1">
                     <LayoutGrid className="w-5 h-5 stroke-[1.5]" />
-                    <span className="font-medium text-[15px] tracking-tight text-slate-500">
+                    <span className="font-medium text-[15px] tracking-tight text-slate-500 dark:text-slate-400 transition-colors">
                       {getPageTitle()}
                     </span>
                   </div>
@@ -139,29 +149,90 @@ export default function LayoutWrapper({
 
             {/* Right Side Tools */}
             <div className="flex items-center gap-3">
-              {/* Notification icon */}
-              <div 
-                onClick={() => setToastMessage("No new notifications at this time.")}
-                className="relative w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition text-slate-600 hover:bg-slate-50 shrink-0"
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shrink-0"
               >
+                {darkMode ? <Sun className="w-5 h-5 stroke-[1.5]" /> : <Moon className="w-5 h-5 stroke-[1.5]" />}
+              </button>
+
+              {/* Notification icon */}
+              <div className="relative">
+                <button 
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shrink-0"
+                >
                 <Bell className="w-5 h-5 stroke-[1.5]" />
-                <span className="absolute top-[8px] right-[8px] w-[9px] h-[9px] rounded-full bg-[#E05058] border-[1.5px] border-white"></span>
+                  <span className="absolute top-[8px] right-[8px] w-[9px] h-[9px] rounded-full bg-[#E05058] border-[1.5px] border-white dark:border-[#111111]"></span>
+                </button>
+
+                {/* Notifications Dropdown */}
+                {showNotifications && (
+                  <div className="absolute top-12 right-0 w-80 bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 z-50 animate-fadeIn overflow-hidden transition-colors">
+                    <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#111111] transition-colors">
+                      <h4 className="font-outfit font-black text-brand-dark dark:text-white transition-colors">Notifications</h4>
+                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full transition-colors">0 New</span>
+                    </div>
+                    <div className="p-8 flex flex-col items-center justify-center text-center">
+                      <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3 transition-colors">
+                        <Bell className="w-5 h-5 text-slate-300 dark:text-slate-500 transition-colors" />
+                      </div>
+                      <p className="text-sm font-bold text-brand-dark dark:text-white transition-colors">You&apos;re all caught up!</p>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 transition-colors">No new notifications to show right now.</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* User Avatar Dropdown */}
-              <div 
-                onClick={() => setToastMessage("Signed in as John Doe (john.doe@delhipublicschool.edu)")}
-                className="flex items-center gap-2.5 rounded-full pl-1.5 pr-3 py-1.5 transition cursor-pointer select-none hover:bg-slate-50"
-              >
-                <ApeAvatar className="w-8 h-8" />
-                <span className="text-[13px] font-bold text-slate-800 hidden sm:inline whitespace-nowrap">John Doe</span>
-                <ChevronDown className="w-4 h-4 text-slate-600 stroke-[2] hidden sm:inline" />
+              <div className="relative">
+                <div 
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                  className="flex items-center gap-2.5 rounded-full pl-1.5 pr-3 py-1.5 transition cursor-pointer select-none hover:bg-slate-50 dark:hover:bg-slate-800"
+                >
+                  <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800">
+                    {userAvatar ? (
+                      <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <ApeAvatar className="w-full h-full" />
+                    )}
+                  </div>
+                  <span className="text-[13px] font-bold text-slate-800 dark:text-white hidden sm:inline whitespace-nowrap transition-colors">{userName}</span>
+                  <ChevronDown className="w-4 h-4 text-slate-600 dark:text-slate-400 stroke-[2] hidden sm:inline transition-colors" />
+                </div>
+                
+                {/* Profile Menu Dropdown */}
+                {showProfileDropdown && (
+                  <div className="absolute top-12 right-0 w-64 bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 z-50 animate-fadeIn overflow-hidden transition-colors">
+                    <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-[#111111] transition-colors">
+                      <p className="font-outfit font-black text-brand-dark dark:text-white text-[15px] truncate transition-colors">{userName}</p>
+                      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate mt-0.5 transition-colors">{userEmail}</p>
+                    </div>
+                    <div className="p-2">
+                      <button 
+                        onClick={() => { setShowProfileDropdown(false); router.push('/settings'); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl transition cursor-pointer text-left"
+                      >
+                        <Settings className="w-4 h-4" />
+                        <span className="text-xs font-bold">Settings</span>
+                      </button>
+                      <button 
+                        onClick={() => { setShowProfileDropdown(false); setToastMessage("Signed out successfully."); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 text-[#E05058] rounded-xl transition cursor-pointer text-left mt-1"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span className="text-xs font-bold">Sign out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Hamburger Menu Toggle (Mobile only) */}
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="md:hidden p-2 rounded-xl bg-white text-slate-600 hover:bg-slate-50 focus:outline-none cursor-pointer shadow-sm"
+                className="md:hidden p-2 rounded-xl bg-white dark:bg-[#111111] text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none cursor-pointer shadow-sm border border-transparent dark:border-slate-800 transition-colors"
               >
                 {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -181,13 +252,15 @@ export default function LayoutWrapper({
                     setViewState('list');
                   } else if (pathname === '/toolkit' && searchParams.get('tool')) {
                     router.push('/toolkit');
+                  } else {
+                    router.back();
                   }
                 }}
-                className="absolute left-2 w-10 h-10 rounded-full bg-[#E0E0E0] text-slate-700 flex items-center justify-center active:scale-95 transition cursor-pointer border border-white/20 shadow-sm"
+                className="absolute left-2 w-10 h-10 rounded-full bg-[#E0E0E0] dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center active:scale-95 transition cursor-pointer border border-white/20 dark:border-slate-700 shadow-sm"
               >
                 <ArrowLeft className="w-5 h-5 stroke-[2]" />
               </button>
-              <h1 className="text-[15px] font-bold text-slate-800 tracking-tight">{getPageTitle()}</h1>
+              <h1 className="text-[15px] font-bold text-slate-800 dark:text-white tracking-tight transition-colors">{getPageTitle()}</h1>
             </div>
           )}
         </div>
@@ -201,7 +274,7 @@ export default function LayoutWrapper({
         {pathname === '/' && viewState === 'list' && (
           <button
             onClick={() => setViewState('create')}
-            className="md:hidden fixed bottom-28 right-6 z-40 bg-white text-[#FF4040] rounded-full p-4 shadow-sm hover:scale-[1.05] active:scale-[0.95] transition cursor-pointer flex items-center justify-center w-[52px] h-[52px]"
+            className="md:hidden fixed bottom-28 right-6 z-40 bg-white dark:bg-[#1A1A1A] text-[#FF4040] dark:text-[#E05058] rounded-full p-4 shadow-sm hover:scale-[1.05] active:scale-[0.95] transition cursor-pointer flex items-center justify-center w-[52px] h-[52px] border border-transparent dark:border-slate-800"
           >
             <Plus className="w-5 h-5 stroke-[1.5]" />
           </button>
@@ -246,7 +319,7 @@ export default function LayoutWrapper({
             className={`flex flex-col items-center gap-1.5 transition cursor-pointer ${isLibraryActive ? 'text-white' : 'text-[#808080] hover:text-slate-300'}`}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2h12a2 2 0 0 0 2-2V8z" />
               <polyline points="14 2 14 8 20 8" />
               <line x1="12" y1="17" x2="12" y2="11" />
               <line x1="9" y1="14" x2="15" y2="14" />
@@ -271,9 +344,9 @@ export default function LayoutWrapper({
 
       {/* Toast Notification (No-print) */}
       {toastMessage && (
-        <div className="fixed top-20 right-4 md:right-8 z-50 animate-float bg-slate-900 border border-slate-800/80 text-white rounded-2xl px-5 py-3 shadow-2xl flex items-center gap-2.5 max-w-sm transition-all duration-300 no-print">
-          <div className="w-2 h-2 rounded-full bg-[#E05058] shrink-0 animate-pulse"></div>
-          <span className="text-xs font-black tracking-tight">{toastMessage}</span>
+        <div className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-50 animate-float bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl px-5 py-3 shadow-lg flex items-center gap-2.5 max-w-sm transition-all duration-300 no-print">
+          <div className={`w-2 h-2 rounded-full ${toastMessage.toLowerCase().includes('success') ? 'bg-[#10B981]' : 'bg-[#E05058]'} shrink-0 animate-pulse`}></div>
+          <span className="text-xs font-bold tracking-tight">{toastMessage}</span>
         </div>
       )}
     </div>

@@ -146,6 +146,23 @@ interface AssignmentState {
   setSubmissions: (submissions: ISubmission[]) => void;
   setActiveSubmission: (submission: ISubmission | null) => void;
   
+  userName: string;
+  setUserName: (name: string) => void;
+  userEmail: string;
+  setUserEmail: (email: string) => void;
+  userAvatar: string | null;
+  setUserAvatar: (avatar: string | null) => void;
+  
+  schoolName: string;
+  setSchoolName: (name: string) => void;
+  schoolLocation: string;
+  setSchoolLocation: (location: string) => void;
+  schoolAvatar: string | null;
+  setSchoolAvatar: (avatar: string | null) => void;
+  
+  darkMode: boolean;
+  setDarkMode: (val: boolean) => void;
+  
   // Async API Calls
   fetchAssignments: () => Promise<void>;
   fetchAssignmentDetails: (id: string) => Promise<IAssignment>;
@@ -223,6 +240,29 @@ export const useAssignmentStore = create<AssignmentState>((set, get) => ({
   setToastMessage: (toastMessage) => set({ toastMessage }),
   setSubmissions: (submissions) => set({ submissions }),
   setActiveSubmission: (activeSubmission) => set({ activeSubmission }),
+
+  userName: 'John Doe',
+  setUserName: (userName) => set({ userName }),
+  userEmail: 'john.doe@delhipublicschool.edu',
+  setUserEmail: (userEmail) => set({ userEmail }),
+  userAvatar: null,
+  setUserAvatar: (userAvatar) => set({ userAvatar }),
+  
+  schoolName: 'Delhi Public School',
+  setSchoolName: (schoolName) => set({ schoolName }),
+  schoolLocation: 'Bokaro Steel City',
+  setSchoolLocation: (schoolLocation) => set({ schoolLocation }),
+  schoolAvatar: null,
+  setSchoolAvatar: (schoolAvatar) => set({ schoolAvatar }),
+
+  darkMode: false,
+  setDarkMode: (darkMode) => {
+    set({ darkMode });
+    if (typeof window !== 'undefined') {
+      if (darkMode) document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
+    }
+  },
 
   fetchAssignments: async () => {
     set({ loading: true, errorMessage: null });

@@ -17,6 +17,8 @@ out/
 
 # Backend build output
 dist/
+backend/uploads/
+
 
 # production
 build/

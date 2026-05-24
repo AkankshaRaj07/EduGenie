@@ -262,6 +262,12 @@ export default function Dashboard() {
       }
     }
 
+    if (inputMethod === 'file' && !file) {
+      errors.file = 'Reference document is required';
+    } else if (inputMethod === 'text' && !pastedText.trim()) {
+      errors.pastedText = 'Reference text is required';
+    }
+
     if (questionRows.length === 0) {
       errors.rows = 'Add at least one question type row';
     }
@@ -393,36 +399,36 @@ ${additionalInstructions || 'None.'}`;
             <>
               {/* Header Row */}
               <div className="hidden md:flex flex-row items-start gap-3 mb-3 pl-0">
-                <span className="w-5 h-5 mt-[1px] rounded-full bg-[#A7F3D0]/70 flex items-center justify-center shrink-0">
-                  <span className="w-3 h-3 rounded-full bg-[#34D399]"></span>
+                <span className="w-5 h-5 mt-[1px] rounded-full bg-[#A7F3D0]/70 dark:bg-[#A7F3D0]/20 flex items-center justify-center shrink-0 transition-colors">
+                  <span className="w-3 h-3 rounded-full bg-[#34D399] dark:bg-[#10B981] transition-colors"></span>
                 </span>
                 <div>
-                  <h1 className="text-[20px] font-black font-outfit text-[#1A1A1A] tracking-tight leading-none">
+                  <h1 className="text-[20px] font-black font-outfit text-[#1A1A1A] dark:text-white tracking-tight leading-none transition-colors">
                     Assignments
                   </h1>
-                  <p className="mt-1 text-[#9CA3AF] text-[13px] font-medium tracking-normal">
+                  <p className="mt-1 text-[#9CA3AF] dark:text-slate-400 text-[13px] font-medium tracking-normal transition-colors">
                     Manage and create assignments for your classes.
                   </p>
                 </div>
               </div>
 
               {/* Filtering & Search Toolbar */}
-              <div className="flex items-center bg-white rounded-[24px] shadow-sm p-2 mb-6 w-full border border-slate-100 gap-2">
-                <div className="flex items-center gap-2 pl-4 pr-2 border-r border-slate-200 shrink-0">
+              <div className="flex items-center bg-white dark:bg-[#111111] rounded-[24px] shadow-sm p-2 mb-6 w-full border border-slate-100 dark:border-slate-800 gap-2 transition-colors">
+                <div className="flex items-center gap-2 pl-4 pr-2 border-r border-slate-200 dark:border-slate-800 shrink-0 transition-colors">
                   <Filter className="w-4 h-4 text-slate-400" />
                   <span className="text-[13px] font-semibold text-slate-400 hidden sm:inline">Filter</span>
                   <span className="text-[13px] font-semibold text-slate-400 sm:hidden">Filter</span>
                 </div>
                 
                 <div className="relative flex-1">
-                  <div className="relative flex items-center bg-white">
+                  <div className="relative flex items-center bg-white dark:bg-transparent transition-colors">
                     <Search className="w-4 h-4 text-slate-400 absolute left-2" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search Name"
-                      className="w-full bg-transparent pl-8 pr-2 text-[13px] font-medium text-slate-700 placeholder-slate-400 focus:outline-none"
+                      className="w-full bg-transparent pl-8 pr-2 text-[13px] font-medium text-slate-700 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
@@ -432,7 +438,7 @@ ${additionalInstructions || 'None.'}`;
 
           {/* Main List Rendering */}
           {storeLoading && assignments.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-24 bg-white border border-slate-200/80 rounded-3xl">
+            <div className="flex-1 flex flex-col items-center justify-center py-24 bg-white dark:bg-[#111111] border border-slate-200/80 dark:border-slate-800 rounded-3xl transition-colors">
               <Loader2 className="w-10 h-10 text-brand-primary animate-spin mb-3" />
               <p className="text-sm text-slate-400 font-bold tracking-tight">Retrieving assessments database...</p>
             </div>
@@ -442,14 +448,14 @@ ${additionalInstructions || 'None.'}`;
                 <img 
                   src="/empty-state.svg" 
                   alt="No assignments illustration" 
-                  className="w-[280px] h-[280px] mx-auto scale-105" 
+                  className="w-[280px] h-[280px] mx-auto scale-105 opacity-90 dark:opacity-70 transition-opacity" 
                 />
               </div>
 
-              <h2 className="text-[20px] font-bold font-outfit text-[#1A1A1A]">
+              <h2 className="text-[20px] font-bold font-outfit text-[#1A1A1A] dark:text-white transition-colors">
                 No assignments yet
               </h2>
-              <p className="text-[#7A7A7A] text-[13px] max-w-[340px] mx-auto mt-2.5 font-medium leading-[1.4] tracking-[-0.01em]">
+              <p className="text-[#7A7A7A] dark:text-slate-400 text-[13px] max-w-[340px] mx-auto mt-2.5 font-medium leading-[1.4] tracking-[-0.01em] transition-colors">
                 Create your first assignment to start collecting and
                 grading student submissions. You can set up rubrics,
                 define marking criteria, and let AI assist with grading.
@@ -457,7 +463,7 @@ ${additionalInstructions || 'None.'}`;
 
               <button
                 onClick={() => setViewState('create')}
-                className="mt-6 bg-[#1A1A1A] hover:bg-black text-white font-semibold text-[13px] py-3.5 px-6 rounded-full flex items-center justify-center gap-1.5 transition cursor-pointer"
+                className="mt-6 bg-[#1A1A1A] dark:bg-white hover:bg-black dark:hover:bg-slate-200 text-white dark:text-black font-semibold text-[13px] py-3.5 px-6 rounded-full flex items-center justify-center gap-1.5 transition cursor-pointer"
               >
                 <Plus className="w-[18px] h-[18px] stroke-[1.5]" /> Create Your First Assignment
               </button>
@@ -468,11 +474,11 @@ ${additionalInstructions || 'None.'}`;
                 <div
                   key={asg._id}
                   onClick={() => router.push(`/assignment/${asg._id}`)}
-                  className="bg-white rounded-[24px] md:rounded-[28px] p-5 md:p-6 shadow-sm border border-slate-100 flex flex-col justify-between min-h-[100px] md:min-h-[220px] cursor-pointer"
+                  className="bg-white dark:bg-[#111111] rounded-[24px] md:rounded-[28px] p-5 md:p-6 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col justify-between min-h-[100px] md:min-h-[220px] cursor-pointer transition-colors"
                 >
                   {/* Card Header & Title */}
                   <div className="flex justify-between items-start gap-4">
-                    <h3 className="text-[16px] md:text-[22px] font-bold font-outfit text-[#1A1A1A] leading-snug">
+                    <h3 className="text-[16px] md:text-[22px] font-bold font-outfit text-[#1A1A1A] dark:text-white leading-snug transition-colors">
                       {asg.title}
                     </h3>
                     
@@ -483,29 +489,29 @@ ${additionalInstructions || 'None.'}`;
                           e.stopPropagation();
                           setActiveDropdownId(activeDropdownId === asg._id ? null : asg._id);
                         }}
-                        className="text-slate-400 hover:text-slate-600 transition"
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition"
                       >
                         <MoreVertical className="w-5 h-5" />
                       </button>
 
                       {/* Dropdown Options */}
                       {activeDropdownId === asg._id && (
-                        <div className="absolute right-0 mt-2 bg-white rounded-2xl shadow-lg border border-slate-100 p-1 w-40 z-30">
+                        <div className="absolute right-0 mt-2 bg-white dark:bg-[#1A1A1A] rounded-2xl shadow-lg border border-slate-100 dark:border-slate-800 p-1 w-40 z-30 transition-colors">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setActiveDropdownId(null);
                               router.push(`/assignment/${asg._id}`);
                             }}
-                            className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-50 transition text-left rounded-xl"
+                            className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition text-left rounded-xl"
                           >
-                            <span className="text-[13px] font-semibold text-[#1A1A1A]">View Assignment</span>
+                            <span className="text-[13px] font-semibold text-[#1A1A1A] dark:text-white transition-colors">View Assignment</span>
                           </button>
                           <button
                             onClick={(e) => handleDelete(e, asg._id)}
-                            className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-50 transition text-left rounded-xl"
+                            className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition text-left rounded-xl"
                           >
-                            <span className="text-[13px] font-semibold text-[#E05058]">Delete</span>
+                            <span className="text-[13px] font-semibold text-[#E05058] transition-colors">Delete</span>
                           </button>
                         </div>
                       )}
@@ -514,11 +520,11 @@ ${additionalInstructions || 'None.'}`;
 
                   {/* Card bottom details */}
                   <div className="mt-4 md:mt-8 flex flex-row items-center gap-3 md:gap-0 justify-start md:justify-between text-[11px] md:text-[13px]">
-                    <div className="text-slate-500">
-                      <span className="font-bold text-[#1A1A1A]">Assigned on :</span> {formatDate(asg.createdAt)}
+                    <div className="text-slate-500 dark:text-slate-400 transition-colors">
+                      <span className="font-bold text-[#1A1A1A] dark:text-white transition-colors">Assigned on :</span> {formatDate(asg.createdAt)}
                     </div>
-                    <div className="text-slate-500">
-                      <span className="font-bold text-[#1A1A1A]">Due :</span> {formatDate(asg.dueDate)}
+                    <div className="text-slate-500 dark:text-slate-400 transition-colors">
+                      <span className="font-bold text-[#1A1A1A] dark:text-white transition-colors">Due :</span> {formatDate(asg.dueDate)}
                     </div>
                   </div>
                 </div>
@@ -539,7 +545,7 @@ ${additionalInstructions || 'None.'}`;
               <div className="hidden md:flex fixed bottom-8 left-[50%] md:left-[calc(50%+144px)] transform -translate-x-1/2 z-40 flex-col items-center">
                 <button
                   onClick={() => setViewState('create')}
-                  className="bg-[#1A1A1A] hover:bg-black text-white font-medium text-[14px] py-2.5 px-6 rounded-full flex items-center gap-2.5 shadow-2xl transition-transform hover:scale-105 active:scale-95 cursor-pointer border border-[#333]"
+                  className="bg-[#1A1A1A] dark:bg-white hover:bg-black dark:hover:bg-slate-200 text-white dark:text-black font-medium text-[14px] py-2.5 px-6 rounded-full flex items-center gap-2.5 shadow-2xl transition-transform hover:scale-105 active:scale-95 cursor-pointer border border-[#333] dark:border-white transition-colors"
                 >
                   <Plus className="w-4 h-4 stroke-[2]" />
                   Create Assignment

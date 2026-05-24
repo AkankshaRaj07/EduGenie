@@ -42,7 +42,7 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${outfit.variable} ${poppins.variable} ${bricolage.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-brand-warm font-bricolage">
+      <body className="min-h-full flex flex-col bg-brand-warm dark:bg-slate-950 dark:text-slate-100 font-bricolage transition-colors duration-300">
         <Suspense fallback={null}>
           <SplashOverlay />
           <LayoutWrapper>{children}</LayoutWrapper>

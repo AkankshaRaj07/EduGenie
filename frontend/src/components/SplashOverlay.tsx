@@ -30,7 +30,7 @@ export default function SplashOverlay() {
           <img 
             src="/vedaai-logo.png" 
             alt="VedaAI Logo" 
-            className="w-24 h-24 object-contain"
+            className="w-24 h-24 object-contain rounded-[22px]"
           />
         </div>
 

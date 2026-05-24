@@ -23,7 +23,8 @@ import {
   User,
   Award,
   AlertCircle,
-  HelpCircle
+  HelpCircle,
+  MoreVertical
 } from 'lucide-react';
 import { useAssignmentStore, ISection } from '../../../store/useAssignmentStore';
 import { useWebSocket } from '../../../hooks/useWebSocket';
@@ -52,7 +53,9 @@ export default function AssignmentOutputPage() {
     fetchSubmissionDetails,
     submitQuiz,
     gradeSubmission,
-    setActiveSubmission
+    setActiveSubmission,
+    schoolName,
+    schoolLocation
   } = useAssignmentStore();
 
   const BACKEND_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api$/, '');
@@ -71,6 +74,7 @@ export default function AssignmentOutputPage() {
   const [localSections, setLocalSections] = useState<ISection[]>([]);
   const [saving, setSaving] = useState(false);
   const [showAnswerKey, setShowAnswerKey] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Student quiz state
   const [studentName, setStudentName] = useState('');
@@ -474,35 +478,83 @@ export default function AssignmentOutputPage() {
                 <Download className="w-4 h-4 stroke-[2.5]" />
                 Download as PDF
               </button>
-              {editMode ? (
-                <>
-                  <button onClick={handleSaveEdits} className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs sm:text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
-                    <Save className="w-4 h-4 stroke-[2.5]" />
-                    {saving ? 'Saving...' : 'Save Edits'}
+              
+              {/* Desktop Buttons */}
+              <div className="hidden sm:flex flex-wrap items-center gap-3">
+                {editMode ? (
+                  <>
+                    <button onClick={handleSaveEdits} className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
+                      <Save className="w-4 h-4 stroke-[2.5]" />
+                      {saving ? 'Saving...' : 'Save Edits'}
+                    </button>
+                    <button onClick={handleCancelEdits} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-white font-bold text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
+                      <X className="w-4 h-4 stroke-[2.5]" />
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button onClick={() => setEditMode(true)} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-white font-bold text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
+                    <Edit className="w-4 h-4 stroke-[2.5]" />
+                    Edit Mode
                   </button>
-                  <button onClick={handleCancelEdits} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-white font-bold text-xs sm:text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
-                    <X className="w-4 h-4 stroke-[2.5]" />
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <button onClick={() => setEditMode(true)} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-white font-bold text-xs sm:text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
-                  <Edit className="w-4 h-4 stroke-[2.5]" />
-                  Edit Mode
+                )}
+                <button onClick={handleRegenerate} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-brand-primary font-bold text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
+                  <RefreshCw className="w-4 h-4 stroke-[2.5]" />
+                  Regenerate AI
                 </button>
-              )}
-              <button onClick={handleRegenerate} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-brand-primary font-bold text-xs sm:text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
-                <RefreshCw className="w-4 h-4 stroke-[2.5]" />
-                Regenerate AI
-              </button>
-              <button onClick={() => { setActiveTab('quiz'); setActiveSubmission(null); }} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-[#a855f7] font-bold text-xs sm:text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
-                <PenTool className="w-4 h-4 stroke-[2.5]" />
-                Take Quiz
-              </button>
-              <button onClick={() => { setActiveTab('submissions'); setActiveSubmission(null); }} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-[#3b82f6] font-bold text-xs sm:text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
-                <ClipboardList className="w-4 h-4 stroke-[2.5]" />
-                Responses
-              </button>
+                <button onClick={() => { setActiveTab('quiz'); setActiveSubmission(null); }} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-[#a855f7] font-bold text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
+                  <PenTool className="w-4 h-4 stroke-[2.5]" />
+                  Take Quiz
+                </button>
+                <button onClick={() => { setActiveTab('submissions'); setActiveSubmission(null); }} className="bg-transparent border border-slate-600 hover:bg-slate-800 text-[#3b82f6] font-bold text-[13px] py-2.5 px-5 rounded-full flex items-center gap-2 transition cursor-pointer w-max">
+                  <ClipboardList className="w-4 h-4 stroke-[2.5]" />
+                  Responses
+                </button>
+              </div>
+
+              {/* Mobile Menu */}
+              <div className="relative sm:hidden ml-auto">
+                <button 
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+                  className="bg-transparent border border-slate-600 hover:bg-slate-800 text-white p-2.5 rounded-full flex items-center justify-center transition cursor-pointer"
+                >
+                  <MoreVertical className="w-4 h-4 stroke-[2.5]" />
+                </button>
+                
+                {mobileMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-[#2A2A2A] border border-slate-600 rounded-xl shadow-lg overflow-hidden z-50 flex flex-col p-2 gap-2">
+                    {editMode ? (
+                      <>
+                        <button onClick={() => { handleSaveEdits(); setMobileMenuOpen(false); }} className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2.5 px-4 rounded-lg flex items-center gap-2 transition cursor-pointer w-full text-left">
+                          <Save className="w-4 h-4 stroke-[2.5]" />
+                          {saving ? 'Saving...' : 'Save Edits'}
+                        </button>
+                        <button onClick={() => { handleCancelEdits(); setMobileMenuOpen(false); }} className="bg-transparent hover:bg-slate-700 text-white font-bold text-xs py-2.5 px-4 rounded-lg flex items-center gap-2 transition cursor-pointer w-full text-left">
+                          <X className="w-4 h-4 stroke-[2.5]" />
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button onClick={() => { setEditMode(true); setMobileMenuOpen(false); }} className="bg-transparent hover:bg-slate-700 text-white font-bold text-xs py-2.5 px-4 rounded-lg flex items-center gap-2 transition cursor-pointer w-full text-left">
+                        <Edit className="w-4 h-4 stroke-[2.5]" />
+                        Edit Mode
+                      </button>
+                    )}
+                    <button onClick={() => { handleRegenerate(); setMobileMenuOpen(false); }} className="bg-transparent hover:bg-slate-700 text-brand-primary font-bold text-xs py-2.5 px-4 rounded-lg flex items-center gap-2 transition cursor-pointer w-full text-left">
+                      <RefreshCw className="w-4 h-4 stroke-[2.5]" />
+                      Regenerate AI
+                    </button>
+                    <button onClick={() => { setActiveTab('quiz'); setActiveSubmission(null); setMobileMenuOpen(false); }} className="bg-transparent hover:bg-slate-700 text-[#a855f7] font-bold text-xs py-2.5 px-4 rounded-lg flex items-center gap-2 transition cursor-pointer w-full text-left">
+                      <PenTool className="w-4 h-4 stroke-[2.5]" />
+                      Take Quiz
+                    </button>
+                    <button onClick={() => { setActiveTab('submissions'); setActiveSubmission(null); setMobileMenuOpen(false); }} className="bg-transparent hover:bg-slate-700 text-[#3b82f6] font-bold text-xs py-2.5 px-4 rounded-lg flex items-center gap-2 transition cursor-pointer w-full text-left">
+                      <ClipboardList className="w-4 h-4 stroke-[2.5]" />
+                      Responses
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -510,7 +562,7 @@ export default function AssignmentOutputPage() {
           <div className="bg-white rounded-[32px] p-8 sm:p-12 sm:px-16 shadow-lg mb-10 text-[#1A1A1A] w-full border border-slate-100">
             <div className="text-center mb-10">
               <h1 className="text-2xl sm:text-[26px] font-bold mb-1 tracking-tight">
-                Delhi Public School, Sector-4, Bokaro
+                {schoolName}, {schoolLocation}
               </h1>
               <h2 className="text-[17px] font-semibold mb-1">Subject: English</h2>
               <h3 className="text-[15px] font-semibold">Class: 5th</h3>
@@ -554,8 +606,8 @@ export default function AssignmentOutputPage() {
                       globalIndex += (qIdx + 1);
 
                       return (
-                        <div key={qIdx} className="flex flex-row justify-between items-start gap-4 mb-4">
-                          <div className="flex-1">
+                        <div key={qIdx} className="flex flex-col sm:flex-row justify-between items-start sm:items-start gap-3 sm:gap-4 mb-6 sm:mb-4 w-full">
+                          <div className="flex-1 w-full">
                             {editMode ? (
                               <textarea 
                                 value={q.text} 
@@ -587,7 +639,7 @@ export default function AssignmentOutputPage() {
                               </ol>
                             )}
                           </div>
-                          <div className="flex flex-row items-center shrink-0 text-[12.5px] font-semibold gap-2 mt-0.5 whitespace-nowrap">
+                          <div className="flex flex-row items-center shrink-0 text-[12.5px] font-semibold gap-2 mt-2 sm:mt-0.5 whitespace-nowrap">
                             {editMode ? (
                               <>
                                 <select 
@@ -638,9 +690,9 @@ export default function AssignmentOutputPage() {
                   <p className="text-[11px] text-[#666666] italic mt-0.5">Attempt all questions. Each question carries 2 marks</p>
                 </div>
                 <div className="space-y-5 text-[13px] leading-relaxed font-medium">
-                  <div className="flex flex-row justify-between items-start gap-4 mb-2">
-                    <p className="flex-1 leading-relaxed">1. Define electroplating. Explain its purpose.</p>
-                    <div className="flex flex-row items-center shrink-0 text-[12.5px] font-semibold gap-2 mt-0.5 whitespace-nowrap">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-start gap-3 sm:gap-4 mb-4 sm:mb-2 w-full">
+                    <p className="flex-1 w-full leading-relaxed">1. Define electroplating. Explain its purpose.</p>
+                    <div className="flex flex-row items-center shrink-0 text-[12.5px] font-semibold gap-2 mt-2 sm:mt-0.5 whitespace-nowrap">
                       <span className="text-emerald-600">Easy</span>
                       <span className="text-slate-300">•</span>
                       <span className="text-slate-500 font-bold">[2 Marks]</span>
@@ -779,7 +831,16 @@ export default function AssignmentOutputPage() {
                   </div>
                 </div>
                 <button
-                  onClick={() => { if(confirm('Exit assessment? Your typed answers will be lost.')) setQuizStarted(false); }}
+                  onClick={() => {
+                    setConfirmModal({
+                      title: 'Cancel Assessment',
+                      message: 'Are you sure you want to exit the assessment? Your typed answers will be lost.',
+                      onConfirm: () => {
+                        setQuizStarted(false);
+                        setConfirmModal(null);
+                      }
+                    });
+                  }}
                   className="text-xs font-black text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-4 py-2 rounded-full transition cursor-pointer"
                 >
                   Cancel Assessment
