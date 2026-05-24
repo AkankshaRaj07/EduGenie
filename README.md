@@ -16,6 +16,8 @@
   <img src="https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/BullMQ-FF4A00?style=flat-square&logo=redis&logoColor=white" alt="BullMQ" />
   <img src="https://img.shields.io/badge/Google_Gemini-8E75B2?style=flat-square&logo=google&logoColor=white" alt="Gemini" />
+  <br/><br/>
+  <img src="assets/dashboard.png" alt="VedaAI Dashboard" width="800" />
 </div>
 
 ---
