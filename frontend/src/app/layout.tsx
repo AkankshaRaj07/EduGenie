@@ -28,7 +28,7 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "EduGenie - AI Assessment Creator",
+  title: "VedaAi - AI Assessment Creator",
   description: "Create and customize exam question papers in seconds using advanced AI grounding models.",
 };
 
