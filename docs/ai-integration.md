@@ -14,10 +14,14 @@ The primary intelligence engine is Google's Vertex/Gemini API via `@google/genai
 - **System Instructions:** Custom personas are injected to force the model to act as a strict examiner or grader.
 - **Structured JSON Output:** We enforce `responseMimeType: "application/json"` and strict `responseSchema` definitions. This ensures Gemini returns perfectly parsable arrays of questions (with multiple choices, marks, and correct answers) rather than loose text.
 
-## Context Grounding
-When an assignment is created, the AI module pulls physical context files from the Reference Library. 
-- It uses the Gemini API's File Manager (`google.files.upload`) to upload PDF/TXT binaries directly to Google's temporary context window.
-- The model uses this specific context to generate questions that strictly adhere to the uploaded textbook or syllabus, drastically reducing hallucinations.
+## AI Teacher's Toolkit
+Beyond strict assignment generation, VedaAI offers an entire suite of generative tools designed specifically for educators:
+- **Lesson Plan Generator:** Teachers input grade level, subject, topic, and learning objectives, and the AI synthesizes a structured lesson schedule, complete with a contextual "hook" and timeline intervals.
+- **Question Bank Builder:** Synthesizes exam-style questions complete with detailed grading schemes, marking rubrics, and varying complexity levels.
+- **Feedback Enhancer:** Expands basic teacher draft notes into comprehensive, encouraging, and academically helpful student review comments based on behavioral principles.
+
+## Speech-to-Text Voice Assistance
+VedaAI natively integrates Speech Recognition on the frontend. When creating assignments, teachers can click the microphone icon to simply dictate their "Additional Instructions" instead of typing, offering a seamless and accessible UX.
 
 ## Auto-Grading Engine
 When a quiz is submitted:
