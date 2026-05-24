@@ -165,7 +165,7 @@ export default function AssignmentOutputPage() {
 
   const handleDownload = () => {
     if (activeAssignment?._id) {
-      window.open(`${BACKEND_BASE}/assignments/${activeAssignment._id}/download`, '_blank');
+      window.open(`${BACKEND_BASE}/api/assignments/${activeAssignment._id}/download`, '_blank');
     } else if (activeAssignment?.pdfUrl) {
       window.open(`${BACKEND_BASE}${activeAssignment.pdfUrl}`, '_blank');
     } else {
